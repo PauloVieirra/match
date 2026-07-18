@@ -1,0 +1,308 @@
+import { StyleSheet } from "react-native";
+import { colors } from "../../theme/colors";
+
+export const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: colors.bg,
+  },
+  content: {
+    paddingHorizontal: 18,
+    paddingBottom: 40,
+  },
+  greeting: {
+    color: colors.accent,
+    fontSize: 14,
+    fontWeight: "700",
+    marginTop: 12,
+  },
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  headline: {
+    color: colors.text,
+    fontSize: 32,
+    fontWeight: "800",
+    lineHeight: 36,
+    marginTop: 8,
+  },
+  infoBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 10,
+  },
+  copy: {
+    color: colors.textMuted,
+    fontSize: 15,
+    lineHeight: 22,
+    marginTop: 10,
+    marginBottom: 22,
+  },
+
+  podium: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    backgroundColor: colors.bgElevated,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingVertical: 18,
+    paddingHorizontal: 12,
+    marginBottom: 16,
+  },
+  podiumSlot: {
+    flex: 1,
+    alignItems: "center",
+  },
+  podiumRankRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  podiumRank: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: "800",
+    marginLeft: 2,
+  },
+  podiumAvatarRing: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    borderWidth: 2,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  podiumAvatarRingBig: {
+    width: 92,
+    height: 92,
+    borderRadius: 46,
+    borderWidth: 3,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  podiumAvatar: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    backgroundColor: colors.bgCard,
+  },
+  podiumAvatarBig: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.bgCard,
+  },
+  podiumName: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: "800",
+    marginTop: 8,
+  },
+  podiumTitle: {
+    color: colors.textDim,
+    fontSize: 11,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
+    marginTop: 2,
+  },
+  podiumXp: {
+    color: colors.accent,
+    fontSize: 13,
+    fontWeight: "800",
+    marginTop: 6,
+  },
+
+  listCard: {
+    backgroundColor: colors.bgCard,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: 14,
+    marginBottom: 16,
+  },
+  rowDivider: {
+    height: 1,
+    backgroundColor: colors.border,
+  },
+  rankRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+  },
+  rankPosBox: {
+    width: 34,
+    alignItems: "center",
+  },
+  rankPos: {
+    color: colors.text,
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  rankAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.bgElevated,
+    marginHorizontal: 10,
+  },
+  rankInfo: {
+    flex: 1,
+  },
+  rankName: {
+    color: colors.text,
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  rankTitle: {
+    color: colors.textDim,
+    fontSize: 11,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
+    marginTop: 2,
+  },
+  rankRight: {
+    alignItems: "flex-end",
+  },
+  rankXp: {
+    color: colors.accent,
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  rankBadges: {
+    flexDirection: "row",
+    gap: 4,
+    marginTop: 5,
+  },
+  miniBadge: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  myCard: {
+    backgroundColor: colors.bgElevated,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.accent,
+    padding: 16,
+    marginBottom: 22,
+  },
+  myHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+  sectionLabel: {
+    color: colors.textDim,
+    fontSize: 12,
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+  },
+  topChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "rgba(24,211,166,0.14)",
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  topChipText: {
+    color: colors.accent,
+    fontSize: 11,
+    fontWeight: "800",
+  },
+  myRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  myAvatarFallback: {
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: colors.accent,
+  },
+  progressTrack: {
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    marginTop: 10,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    borderRadius: 4,
+    backgroundColor: colors.accent,
+  },
+  progressHint: {
+    color: colors.textMuted,
+    fontSize: 12,
+    marginTop: 8,
+  },
+
+  achievementsHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  seeAll: {
+    color: colors.accent,
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  badgesRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  badgeItem: {
+    width: "22%",
+    alignItems: "center",
+  },
+  badgeCircle: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    borderWidth: 1.5,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  badgeLocked: {
+    backgroundColor: "rgba(255,255,255,0.04)",
+    borderColor: colors.border,
+  },
+  badgeLabel: {
+    color: colors.textMuted,
+    fontSize: 11,
+    fontWeight: "600",
+    marginTop: 6,
+    textAlign: "center",
+  },
+  badgeLabelLocked: {
+    color: colors.textDim,
+  },
+
+  demoNote: {
+    color: colors.textDim,
+    fontSize: 12,
+    textAlign: "center",
+    marginTop: 22,
+  },
+});

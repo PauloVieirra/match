@@ -1,0 +1,16 @@
+export const colors = {
+  bg: "#0B0D0F",
+  bgElevated: "#14171A",
+  bgCard: "#1A1E22",
+  accent: "#18D3A6",
+  accentDark: "#07110E",
+  coral: "#FF4D6D",
+  online: "#19D36A",
+  text: "#FFFFFF",
+  textMuted: "rgba(255,255,255,0.65)",
+  textDim: "rgba(255,255,255,0.45)",
+  border: "rgba(255,255,255,0.08)",
+  borderStrong: "rgba(255,255,255,0.14)",
+  white: "#FFFFFF",
+  black: "#000000",
+};
