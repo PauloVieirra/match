@@ -5,7 +5,15 @@ import { AppContext } from "../../../contexts/ContextAPI";
 import PrimaryButton from "../../Components/ui/PrimaryButton";
 import ProfileAnalyzerCard from "../../Components/ProfileAnalyzerCard";
 import { analyzeProfile, mapOwnProfileForAnalysis } from "../../utils/profileAnalyzer";
+import { parseBirthDate, ageFrom, zodiacOf } from "../../utils/birthday";
+import {
+  GENDER_OPTIONS,
+  INTERESTED_IN_OPTIONS,
+  RELATIONSHIP_INTENTS,
+} from "../../data/lifestyleOptions";
 import { styles } from "./style";
+
+const labelOf = (options, id) => options.find((o) => o.id === id)?.label;
 
 export default function ProfileScreen({ navigation }) {
   const { user, logout, filters } = useContext(AppContext);
@@ -16,6 +24,25 @@ export default function ProfileScreen({ navigation }) {
     () => analyzeProfile(mapOwnProfileForAnalysis(user)),
     [user]
   );
+
+  const birth = parseBirthDate(profile.birthDate);
+  const age = birth ? ageFrom(birth) : null;
+  const zodiac = birth && profile.showZodiac ? zodiacOf(birth) : null;
+  const vis = profile.visibility || {};
+  const isHidden = (key) => vis[key] === false;
+  const heightLabel = profile.heightCm
+    ? `${(profile.heightCm / 100).toFixed(2).replace(".", ",")} m`
+    : null;
+  const metaLine = [!isHidden("height") ? heightLabel : null, zodiac]
+    .filter(Boolean)
+    .join(" · ");
+  const interestedIn = (profile.interestedIn || [])
+    .map((id) => labelOf(INTERESTED_IN_OPTIONS, id))
+    .filter(Boolean);
+  const intents = (profile.relationshipIntents || [])
+    .map((id) => labelOf(RELATIONSHIP_INTENTS, id))
+    .filter(Boolean);
+  const hiddenSuffix = (key) => (isHidden(key) ? " · oculto" : "");
 
   return (
     <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
@@ -28,12 +55,50 @@ export default function ProfileScreen({ navigation }) {
               <Text style={styles.avatarLetter}>{(profile.name || "?")[0]}</Text>
             </View>
           )}
-          <Text style={styles.name}>{profile.name || "Seu perfil"}</Text>
+          <Text style={styles.name}>
+            {profile.name || "Seu perfil"}
+            {age ? `, ${age}` : ""}
+          </Text>
           <Text style={styles.city}>{profile.city || "Cidade não informada"}</Text>
+          {metaLine ? <Text style={styles.metaLine}>{metaLine}</Text> : null}
           {profile.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}
         </View>
 
         <ProfileAnalyzerCard analysis={analysis} />
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Identidade e interesses</Text>
+          <Text style={styles.line}>
+            {labelOf(GENDER_OPTIONS, profile.gender) || "Como você se define: —"}
+            {hiddenSuffix("gender")}
+          </Text>
+          <Text style={styles.lineMuted}>
+            Deseja conhecer: {interestedIn.length ? interestedIn.join(" · ") : "todos"}
+            {hiddenSuffix("interestedIn")}
+          </Text>
+          {heightLabel ? (
+            <Text style={styles.lineMuted}>
+              Altura: {heightLabel}
+              {hiddenSuffix("height")}
+            </Text>
+          ) : null}
+          {intents.length ? (
+            <>
+              <Text style={styles.lineMuted}>
+                Procurando por{hiddenSuffix("relationshipIntents")}:
+              </Text>
+              <View style={[styles.chips, { marginTop: 8 }]}>
+                {intents.map((t) => (
+                  <View key={t} style={styles.chip}>
+                    <Text style={styles.chipText}>{t}</Text>
+                  </View>
+                ))}
+              </View>
+            </>
+          ) : (
+            <Text style={styles.lineMuted}>Procurando por: —</Text>
+          )}
+        </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Hábitos</Text>

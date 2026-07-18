@@ -17,7 +17,7 @@ import { styles } from "./style";
 const CODE_LENGTH = 6;
 
 export default function VerifyCodeScreen({ navigation, route }) {
-  const { login } = useContext(AppContext);
+  const { loginWithPhone } = useContext(AppContext);
   const { phone, rawPhone, token } = route.params || {};
   const [code, setCode] = useState("");
   const [currentToken, setCurrentToken] = useState(token);
@@ -33,12 +33,14 @@ export default function VerifyCodeScreen({ navigation, route }) {
       setCode("");
       return;
     }
-    // Validação ok → inicia cadastro do perfil (onboarding).
-    await login({
-      provider: "phone",
-      phone: rawPhone,
-      onboardingCompleted: false,
-    });
+    // Conta existente → login direto; número novo → cadastro (onboarding).
+    const result = await loginWithPhone(rawPhone);
+    if (!result.isNewAccount) {
+      Alert.alert(
+        "Bem-vindo(a) de volta",
+        result.name ? `Que bom te ver de novo, ${result.name.split(" ")[0]}!` : "Login realizado."
+      );
+    }
   };
 
   const resend = () => {
@@ -99,7 +101,7 @@ export default function VerifyCodeScreen({ navigation, route }) {
 
       <View style={styles.footer}>
         <PrimaryButton
-          title="Validar e criar perfil"
+          title="Validar código"
           onPress={validate}
           disabled={code.length < CODE_LENGTH}
         />

@@ -1,4 +1,4 @@
-import React, { useContext, useMemo } from "react";
+import React, { useContext, useEffect, useMemo } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { styles } from "./style";
@@ -9,7 +9,7 @@ import { filterCompatibleProfiles } from "../../utils/profileMatcher";
 import { mergeFiltersWithProfile } from "../../data/lifestyleOptions";
 
 export default function DiscoverScreen({ navigation }) {
-  const { user, filters } = useContext(AppContext);
+  const { user, filters, registerReciprocalCandidates } = useContext(AppContext);
   const myLifestyles = user?.profile?.lifestyles || [];
   const resolvedFilters = useMemo(
     () => mergeFiltersWithProfile(filters, user?.profile),
@@ -20,6 +20,10 @@ export default function DiscoverScreen({ navigation }) {
     () => filterCompatibleProfiles(mockUsers, { myLifestyles, filters: resolvedFilters }),
     [myLifestyles, resolvedFilters]
   );
+
+  useEffect(() => {
+    registerReciprocalCandidates(profiles.map((profile) => profile.id));
+  }, [profiles, registerReciprocalCandidates]);
 
   const opennessLabel =
     resolvedFilters.openness === "open"

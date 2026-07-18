@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import HomeScreen from "../src/screens/Home/Index";
 import DiscoverScreen from "../src/screens/Discover";
+import CheckInScreen from "../src/screens/CheckIn";
 import MatchesScreen from "../src/screens/Matches";
 import ProfileScreen from "../src/screens/Profile";
 
@@ -12,6 +13,7 @@ const Tab = createBottomTabNavigator();
 const ICONS = {
   HomeTab: "home",
   DiscoverTab: "compass",
+  CheckInTab: "map-pin",
   MatchesTab: "users",
   ProfileTab: "user",
 };
@@ -47,6 +49,7 @@ export default function AppTabs() {
     >
       <Tab.Screen name="HomeTab" component={HomeScreen} options={{ title: "Início" }} />
       <Tab.Screen name="DiscoverTab" component={DiscoverScreen} options={{ title: "Descobrir" }} />
+      <Tab.Screen name="CheckInTab" component={CheckInScreen} options={{ title: "Check-in" }} />
       <Tab.Screen name="MatchesTab" component={MatchesScreen} options={{ title: "Matches" }} />
       <Tab.Screen name="ProfileTab" component={ProfileScreen} options={{ title: "Perfil" }} />
     </Tab.Navigator>

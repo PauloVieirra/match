@@ -58,6 +58,12 @@ export function analyzeProfile(raw = {}) {
     motto: raw.motto || "",
     profession: raw.profession || "",
     photos: getPhotos(raw),
+    gender: raw.gender || "",
+    interestedIn: raw.interestedIn || [],
+    relationshipIntents: raw.relationshipIntents || [],
+    heightCm: raw.heightCm || null,
+    birthDate: raw.birthDate || "",
+    visibility: raw.visibility || {},
   };
 
   const tips = [];
@@ -137,6 +143,38 @@ export function analyzeProfile(raw = {}) {
   score += goalPts;
   checks.push({ key: "goals", label: "Objetivos", ok: goalCount >= MIN_GOALS, detail: `${goalCount} objetivos` });
 
+  // Identidade e interesses (10) — preencher e manter visível conta pontos
+  const vis = profile.visibility;
+  const visible = (key) => vis[key] !== false;
+  let identity = 0;
+  const identityItems = [
+    { key: "gender", filled: !!profile.gender, pts: 3, label: "como você se define" },
+    { key: "interestedIn", filled: profile.interestedIn.length > 0, pts: 2, label: "quem deseja conhecer" },
+    { key: "relationshipIntents", filled: profile.relationshipIntents.length > 0, pts: 2, label: "o que está procurando" },
+    { key: "height", filled: !!profile.heightCm, pts: 2, label: "sua altura" },
+  ];
+  for (const item of identityItems) {
+    if (!item.filled) {
+      tips.push(`Informe ${item.label} — quanto mais completo, melhor o match.`);
+      continue;
+    }
+    if (visible(item.key)) {
+      identity += item.pts;
+    } else {
+      identity += 1;
+      tips.push(`Você está ocultando ${item.label} — mostrar melhora a qualidade do perfil.`);
+    }
+  }
+  if (profile.birthDate) identity += 1;
+  identity = Math.min(identity, 10);
+  score += identity;
+  checks.push({
+    key: "identity",
+    label: "Identidade e interesses",
+    ok: identity >= 8,
+    detail: `${identity}/10`,
+  });
+
   // Extra (lookingFor + motto) (até 5, já dentro do teto)
   let extra = 0;
   if (profile.lookingFor) extra += 2;
@@ -193,5 +231,11 @@ export function mapOwnProfileForAnalysis(user) {
     motto: p.motto || "",
     profession: p.profession || "",
     photos: p.photos || [],
+    gender: p.gender || "",
+    interestedIn: p.interestedIn || [],
+    relationshipIntents: p.relationshipIntents || [],
+    heightCm: p.heightCm || null,
+    birthDate: p.birthDate || "",
+    visibility: p.visibility || {},
   };
 }

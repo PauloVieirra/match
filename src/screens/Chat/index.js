@@ -4,10 +4,27 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { styles } from "./style";
 import { mockChat } from "../../data/mockChat";
+import { getMockUserById } from "../../data/mockUsers";
 import { colors } from "../../theme/colors";
 
-export default function ChatScreen({ navigation }) {
-  const { participant, matchInfo, messages } = mockChat;
+export default function ChatScreen({ navigation, route }) {
+  const target = getMockUserById(route?.params?.userId);
+  const participant = target
+    ? {
+        name: target.name,
+        avatar: target.image,
+        statusText: target.activeToday ? "Online agora" : "Visto recentemente",
+      }
+    : mockChat.participant;
+  const matchInfo = target
+    ? {
+        title: "Vocês se conectaram",
+        subtitle:
+          (target.activityTypes || []).slice(0, 2).join(" · ") ||
+          "Estilo de vida em comum",
+      }
+    : mockChat.matchInfo;
+  const { messages } = mockChat;
 
   return (
     <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>

@@ -24,6 +24,14 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Usamos sua localização apenas para listar locais de treino próximos e validar o check-in. Ela não é compartilhada com outras pessoas."
+        }
+      ]
+    ]
   }
 }

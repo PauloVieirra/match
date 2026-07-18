@@ -92,6 +92,35 @@ export const PREFERRED_TIMES = [
 /** Raio de busca (GPS na próxima etapa). */
 export const DISTANCE_OPTIONS = [5, 10, 15, 20, 30, 40, 60, 80, 100];
 
+/** Identidade e interesse afetivo — o app é focado em treino, mas permite relações amorosas. */
+export const GENDER_OPTIONS = [
+  { id: "man", label: "Sou homem" },
+  { id: "woman", label: "Sou mulher" },
+  { id: "nonbinary", label: "Não binário" },
+  { id: "other", label: "Outro" },
+];
+
+export const INTERESTED_IN_OPTIONS = [
+  { id: "men", label: "Homem" },
+  { id: "women", label: "Mulher" },
+  { id: "nonbinary", label: "Não binário" },
+  { id: "other", label: "Outro" },
+];
+
+export const RELATIONSHIP_INTENTS = [
+  { id: "serious", label: "Relacionamento sério" },
+  { id: "casual", label: "Algo casual" },
+  { id: "maybe", label: "Vamos ver (vai que)" },
+  { id: "friendship", label: "Amizade" },
+  { id: "training_partner", label: "Parceiro(a) de treino" },
+  { id: "hangout", label: "Companhia para rolês" },
+  { id: "fwb", label: "Amizade colorida" },
+  { id: "open", label: "Relação aberta" },
+  { id: "one_night", label: "Aventura de uma noite" },
+];
+
+export const HEIGHT_RANGE = { min: 140, max: 220, initial: 175 };
+
 export const SMOKING_OPTIONS = [
   { id: "never", label: "Não fumo" },
   { id: "sometimes", label: "Socialmente / às vezes" },
@@ -146,6 +175,14 @@ export const emptyHabits = () => ({
   alcohol: "",
 });
 
+/** Controle do que aparece no perfil público — ocultar reduz a qualidade do perfil. */
+export const emptyVisibility = () => ({
+  gender: true,
+  interestedIn: true,
+  relationshipIntents: true,
+  height: true,
+});
+
 export const emptyTolerance = () => ({
   openness: "selective",
   dealbreakers: [],
@@ -172,6 +209,13 @@ export const DEFAULT_FILTERS = {
 export const emptyProfile = () => ({
   name: "",
   birthDate: "",
+  showZodiac: false,
+  cityInfo: null,
+  gender: "",
+  interestedIn: [],
+  relationshipIntents: [],
+  heightCm: null,
+  visibility: emptyVisibility(),
   phone: "",
   city: "",
   bio: "",

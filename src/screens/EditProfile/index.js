@@ -1,8 +1,10 @@
 import React, { useContext, useState } from "react";
-import { View, Text, TextInput, ScrollView, Alert } from "react-native";
+import { View, Text, TextInput, ScrollView, Alert, Switch } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppContext } from "../../../contexts/ContextAPI";
 import Chip from "../../Components/ui/Chip";
+import CityAutocomplete from "../../Components/ui/CityAutocomplete";
+import HeightWheel from "../../Components/ui/HeightWheel";
 import PrimaryButton from "../../Components/ui/PrimaryButton";
 import ScreenHeader from "../../Components/ui/ScreenHeader";
 import ToleranceSensor from "../../Components/ToleranceSensor";
@@ -15,9 +17,15 @@ import {
   TRAINING_LEVELS,
   SMOKING_OPTIONS,
   ALCOHOL_OPTIONS,
+  GENDER_OPTIONS,
+  INTERESTED_IN_OPTIONS,
+  RELATIONSHIP_INTENTS,
   emptyHabits,
   emptyTolerance,
+  emptyVisibility,
 } from "../../data/lifestyleOptions";
+import { parseBirthDate } from "../../utils/birthday";
+import { colors } from "../../theme/colors";
 import { styles } from "./style";
 
 function toggle(list, item, max = 8) {
@@ -33,6 +41,7 @@ export default function EditProfileScreen({ navigation }) {
     name: p.name || "",
     bio: p.bio || "",
     city: p.city || "",
+    cityInfo: p.cityInfo || null,
     profession: p.profession || "",
     lookingFor: p.lookingFor || "",
     motto: p.motto || "",
@@ -44,11 +53,33 @@ export default function EditProfileScreen({ navigation }) {
     goals: p.goals || [],
     habits: { ...emptyHabits(), ...(p.habits || {}) },
     tolerance: { ...emptyTolerance(), ...(p.tolerance || {}) },
+    gender: p.gender || "",
+    interestedIn: p.interestedIn || [],
+    relationshipIntents: p.relationshipIntents || [],
+    heightCm: p.heightCm || null,
+    showZodiac: !!p.showZodiac,
+    visibility: { ...emptyVisibility(), ...(p.visibility || {}) },
   });
+
+  const hasBirthDate = !!parseBirthDate(p.birthDate);
 
   const patch = (partial) => setDraft((d) => ({ ...d, ...partial }));
   const patchHabits = (partial) =>
     setDraft((d) => ({ ...d, habits: { ...d.habits, ...partial } }));
+  const patchVisibility = (key, value) =>
+    setDraft((d) => ({ ...d, visibility: { ...d.visibility, [key]: value } }));
+
+  const VisibilitySwitch = ({ field }) => (
+    <View style={styles.visRow}>
+      <Text style={styles.visText}>Mostrar</Text>
+      <Switch
+        value={!!draft.visibility[field]}
+        onValueChange={(v) => patchVisibility(field, v)}
+        trackColor={{ false: "rgba(255,255,255,0.15)", true: "rgba(24,211,166,0.5)" }}
+        thumbColor={draft.visibility[field] ? colors.accent : "#888"}
+      />
+    </View>
+  );
 
   const save = async () => {
     if (!draft.name.trim()) {
@@ -86,12 +117,11 @@ export default function EditProfileScreen({ navigation }) {
           placeholder="Conte sobre rotina, hábitos e o que busca (~120+ chars para nível ideal)"
         />
         <Text style={styles.label}>Cidade</Text>
-        <TextInput
-          style={styles.input}
+        <CityAutocomplete
           value={draft.city}
-          onChangeText={(city) => patch({ city })}
-          placeholderTextColor="rgba(255,255,255,0.4)"
-          placeholder="Brasília - DF"
+          onSelect={(c) =>
+            patch({ city: c.label, cityInfo: { id: c.id, name: c.name, uf: c.uf } })
+          }
         />
         <Text style={styles.label}>Ocupação</Text>
         <TextInput
@@ -117,6 +147,78 @@ export default function EditProfileScreen({ navigation }) {
           placeholderTextColor="rgba(255,255,255,0.4)"
           placeholder="Uma frase que te define"
         />
+
+        <Text style={styles.note}>
+          Você pode ocultar as informações abaixo, mas isso reduz a qualidade do seu perfil.
+        </Text>
+
+        <View style={styles.labelRow}>
+          <Text style={styles.label}>Como você se define</Text>
+          <VisibilitySwitch field="gender" />
+        </View>
+        <View style={styles.chips}>
+          {GENDER_OPTIONS.map((opt) => (
+            <Chip
+              key={opt.id}
+              label={opt.label}
+              selected={draft.gender === opt.id}
+              onPress={() => patch({ gender: draft.gender === opt.id ? "" : opt.id })}
+            />
+          ))}
+        </View>
+
+        <View style={styles.labelRow}>
+          <Text style={styles.label}>Tenho interesse em</Text>
+          <VisibilitySwitch field="interestedIn" />
+        </View>
+        <View style={styles.chips}>
+          {INTERESTED_IN_OPTIONS.map((opt) => (
+            <Chip
+              key={opt.id}
+              label={opt.label}
+              selected={draft.interestedIn.includes(opt.id)}
+              onPress={() => patch({ interestedIn: toggle(draft.interestedIn, opt.id, 4) })}
+            />
+          ))}
+        </View>
+
+        <View style={styles.labelRow}>
+          <Text style={styles.label}>Procurando por</Text>
+          <VisibilitySwitch field="relationshipIntents" />
+        </View>
+        <View style={styles.chips}>
+          {RELATIONSHIP_INTENTS.map((opt) => (
+            <Chip
+              key={opt.id}
+              label={opt.label}
+              selected={draft.relationshipIntents.includes(opt.id)}
+              onPress={() =>
+                patch({ relationshipIntents: toggle(draft.relationshipIntents, opt.id, 5) })
+              }
+            />
+          ))}
+        </View>
+
+        <View style={styles.labelRow}>
+          <Text style={styles.label}>Altura</Text>
+          <VisibilitySwitch field="height" />
+        </View>
+        <HeightWheel value={draft.heightCm} onChange={(heightCm) => patch({ heightCm })} />
+
+        {hasBirthDate ? (
+          <View style={styles.labelRow}>
+            <Text style={styles.label}>Exibir signo no perfil</Text>
+            <View style={styles.visRow}>
+              <Text style={styles.visText}>Mostrar</Text>
+              <Switch
+                value={draft.showZodiac}
+                onValueChange={(showZodiac) => patch({ showZodiac })}
+                trackColor={{ false: "rgba(255,255,255,0.15)", true: "rgba(24,211,166,0.5)" }}
+                thumbColor={draft.showZodiac ? colors.accent : "#888"}
+              />
+            </View>
+          </View>
+        ) : null}
 
         <Text style={styles.label}>Fumo</Text>
         <View style={styles.chips}>

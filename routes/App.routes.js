@@ -11,6 +11,7 @@ import PhotosScreen from "../src/screens/Photos";
 import LocationScreen from "../src/screens/Location";
 import ChatScreen from "../src/screens/Chat";
 import ProfileDetailScreen from "../src/screens/ProfileDetail";
+import MatchCelebrationScreen from "../src/screens/MatchCelebration";
 
 const Stack = createNativeStackNavigator();
 
@@ -19,6 +20,11 @@ export default function AppRoutes() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="MainTabs" component={AppTabs} />
       <Stack.Screen name="ProfileDetail" component={ProfileDetailScreen} />
+      <Stack.Screen
+        name="MatchCelebration"
+        component={MatchCelebrationScreen}
+        options={{ gestureEnabled: false }}
+      />
       <Stack.Screen name="EditProfile" component={EditProfileScreen} />
       <Stack.Screen name="Photos" component={PhotosScreen} />
       <Stack.Screen name="Location" component={LocationScreen} />

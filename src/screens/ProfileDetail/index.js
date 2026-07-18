@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useContext, useMemo } from "react";
 import {
   View,
   Text,
@@ -6,12 +6,12 @@ import {
   Image,
   ImageBackground,
   TouchableOpacity,
-  Alert,
   useWindowDimensions,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Feather } from "@expo/vector-icons";
+import { AppContext } from "../../../contexts/ContextAPI";
 import { getMockUserById } from "../../data/mockUsers";
 import { colors } from "../../theme/colors";
 import { styles } from "./style";
@@ -25,10 +25,10 @@ function Tag({ label }) {
 }
 
 export default function ProfileDetailScreen({ navigation, route }) {
+  const { sendConnectionRequest, connectionStatus } = useContext(AppContext);
   const userId = route?.params?.userId;
   const passed = route?.params?.user;
   const user = useMemo(() => passed || getMockUserById(userId), [passed, userId]);
-  const [connected, setConnected] = useState(false);
   const { height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
@@ -51,12 +51,18 @@ export default function ProfileDetailScreen({ navigation, route }) {
 
   const subtitleParts = [user.profession, user.sportPreferred].filter(Boolean);
 
-  const onConnect = () => {
-    setConnected(true);
-    Alert.alert(
-      "Conexão enviada",
-      `Você pediu para conectar com ${user.name}. Se houver reciprocidade, o chat será liberado.`
-    );
+  const status = connectionStatus(user.id);
+
+  const onConnect = async () => {
+    if (status === "matched") {
+      navigation.navigate("ChatThread", { userId: user.id });
+      return;
+    }
+
+    const result = await sendConnectionRequest(user.id);
+    if (result.status === "matched") {
+      navigation.replace("MatchCelebration", { userId: user.id });
+    }
   };
 
   return (
@@ -178,13 +184,17 @@ export default function ProfileDetailScreen({ navigation, route }) {
           ) : null}
 
           <TouchableOpacity
-            style={[styles.connectBtn, connected && styles.connectBtnDone]}
+            style={[styles.connectBtn, status !== "none" && styles.connectBtnDone]}
             onPress={onConnect}
             activeOpacity={0.9}
-            disabled={connected}
+            disabled={status === "pending"}
           >
-            <Text style={[styles.connectBtnText, connected && styles.connectBtnDoneText]}>
-              {connected ? "Pedido enviado" : "Conectar"}
+            <Text style={[styles.connectBtnText, status !== "none" && styles.connectBtnDoneText]}>
+              {status === "matched"
+                ? "Iniciar conversa"
+                : status === "pending"
+                  ? "Pedido enviado"
+                  : "Conectar"}
             </Text>
           </TouchableOpacity>
 

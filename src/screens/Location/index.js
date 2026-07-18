@@ -1,7 +1,8 @@
 import React, { useContext, useState } from "react";
-import { View, Text, TextInput, Alert } from "react-native";
+import { View, Text, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppContext } from "../../../contexts/ContextAPI";
+import CityAutocomplete from "../../Components/ui/CityAutocomplete";
 import PrimaryButton from "../../Components/ui/PrimaryButton";
 import ScreenHeader from "../../Components/ui/ScreenHeader";
 import { styles } from "./style";
@@ -9,15 +10,15 @@ import { styles } from "./style";
 export default function LocationScreen({ navigation }) {
   const { user, updateProfile } = useContext(AppContext);
   const [city, setCity] = useState(user?.profile?.city || "");
+  const [cityInfo, setCityInfo] = useState(user?.profile?.cityInfo || null);
   const [granted, setGranted] = useState(!!user?.profile?.locationGranted);
 
   const allow = () => {
     setGranted(true);
-    if (!city) setCity("Brasília - DF");
   };
 
   const save = async () => {
-    await updateProfile({ city, locationGranted: granted });
+    await updateProfile({ city, cityInfo, locationGranted: granted });
     Alert.alert("Salvo", "Localização atualizada.");
     navigation.goBack();
   };
@@ -32,12 +33,12 @@ export default function LocationScreen({ navigation }) {
       />
       <View style={styles.content}>
         <Text style={styles.label}>Cidade</Text>
-        <TextInput
-          style={styles.input}
+        <CityAutocomplete
           value={city}
-          onChangeText={setCity}
-          placeholder="Brasília - DF"
-          placeholderTextColor="rgba(255,255,255,0.4)"
+          onSelect={(c) => {
+            setCity(c.label);
+            setCityInfo({ id: c.id, name: c.name, uf: c.uf });
+          }}
         />
         <PrimaryButton
           title={granted ? "GPS liberado ✓" : "Permitir localização"}

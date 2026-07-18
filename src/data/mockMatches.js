@@ -1,6 +1,7 @@
 export const mockMatches = [
   {
     id: "m1",
+    userId: "u1",
     name: "Bruna",
     age: 26,
     avatar: { uri: "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=400" },
@@ -12,6 +13,7 @@ export const mockMatches = [
   },
   {
     id: "m2",
+    userId: "u2",
     name: "Lucas",
     age: 28,
     avatar: { uri: "https://images.pexels.com/photos/841130/pexels-photo-841130.jpeg?auto=compress&cs=tinysrgb&w=400" },
@@ -23,6 +25,7 @@ export const mockMatches = [
   },
   {
     id: "m3",
+    userId: "u3",
     name: "Marina",
     age: 24,
     avatar: { uri: "https://images.pexels.com/photos/3823039/pexels-photo-3823039.jpeg?auto=compress&cs=tinysrgb&w=400" },
@@ -34,6 +37,7 @@ export const mockMatches = [
   },
   {
     id: "m4",
+    userId: "u4",
     name: "Rafael",
     age: 30,
     avatar: { uri: "https://images.pexels.com/photos/2261477/pexels-photo-2261477.jpeg?auto=compress&cs=tinysrgb&w=400" },

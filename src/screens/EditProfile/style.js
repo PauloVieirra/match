@@ -19,6 +19,15 @@ export const styles = StyleSheet.create({
   inputDisabled: { opacity: 0.6 },
   bio: { height: 120, paddingTop: 12, textAlignVertical: "top" },
   chips: { flexDirection: "row", flexWrap: "wrap" },
+  labelRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 10,
+    marginBottom: 4,
+  },
+  visRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  visText: { color: colors.textDim, fontSize: 12, fontWeight: "600" },
   footer: {
     paddingHorizontal: 18,
     paddingVertical: 12,

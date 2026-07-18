@@ -7,10 +7,16 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Modal,
+  Switch,
+  TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Feather } from "@expo/vector-icons";
 import { AppContext } from "../../../contexts/ContextAPI";
 import Chip from "../../Components/ui/Chip";
+import CityAutocomplete from "../../Components/ui/CityAutocomplete";
+import HeightWheel from "../../Components/ui/HeightWheel";
 import PrimaryButton from "../../Components/ui/PrimaryButton";
 import ScreenHeader from "../../Components/ui/ScreenHeader";
 import ToleranceSensor from "../../Components/ToleranceSensor";
@@ -25,14 +31,47 @@ import {
   PREFERRED_TIMES,
   SMOKING_OPTIONS,
   ALCOHOL_OPTIONS,
+  GENDER_OPTIONS,
+  INTERESTED_IN_OPTIONS,
+  RELATIONSHIP_INTENTS,
   emptyProfile,
   emptyHabits,
   emptyTolerance,
 } from "../../data/lifestyleOptions";
+import { formatBirthInput, parseBirthDate, ageFrom, zodiacOf } from "../../utils/birthday";
+import { colors } from "../../theme/colors";
 import { styles } from "./style";
 
 const STEPS = [
   { key: "basics", title: "Quem é você?", subtitle: "Nome e como quer ser chamado no app." },
+  {
+    key: "birthdate",
+    title: "Sua data de nascimento",
+    subtitle: "Verifique se está correta — você não poderá modificá-la depois.",
+  },
+  {
+    key: "identity",
+    title: "Como você se define?",
+    subtitle: "Você pode modificar essa informação mais tarde falando com o suporte.",
+  },
+  {
+    key: "seeking",
+    title: "Você deseja conhecer",
+    subtitle: "Selecione um ou mais itens — ou deixe desmarcado para todos.",
+    optional: true,
+  },
+  {
+    key: "intent",
+    title: "O que você está procurando?",
+    subtitle: "Escolha a(s) opção(ões) que mais te atende(m).",
+    optional: true,
+  },
+  {
+    key: "height",
+    title: "Qual é a sua altura?",
+    subtitle: "Você pode modificar ou apagar a sua resposta quando quiser.",
+    optional: true,
+  },
   {
     key: "lifestyle",
     title: "Seu estilo de vida",
@@ -98,8 +137,15 @@ export default function OnboardingScreen() {
     };
   });
 
+  const [ageModalVisible, setAgeModalVisible] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
+
   const progress = useMemo(() => (step + 1) / STEPS.length, [step]);
   const current = STEPS[step];
+
+  const birthParsed = parseBirthDate(draft.birthDate);
+  const birthAge = birthParsed ? ageFrom(birthParsed) : null;
+  const birthZodiac = birthParsed ? zodiacOf(birthParsed) : null;
 
   const patch = (partial) => setDraft((d) => ({ ...d, ...partial }));
   const patchHabits = (partial) =>
@@ -110,6 +156,14 @@ export default function OnboardingScreen() {
     switch (current.key) {
       case "basics":
         return draft.name.trim().length >= 2;
+      case "birthdate":
+        return !!birthParsed && birthAge >= 18 && birthAge <= 100;
+      case "identity":
+        return !!draft.gender;
+      case "seeking":
+      case "intent":
+      case "height":
+        return true;
       case "lifestyle":
         return draft.lifestyles.length >= 2;
       case "habits":
@@ -137,7 +191,15 @@ export default function OnboardingScreen() {
 
   const next = async () => {
     if (!canContinue()) {
+      if (current.key === "birthdate" && birthParsed && birthAge < 18) {
+        Alert.alert("Idade mínima", "Você precisa ter pelo menos 18 anos para usar o app.");
+        return;
+      }
       Alert.alert("Quase lá", "Preencha os campos obrigatórios deste passo.");
+      return;
+    }
+    if (current.key === "birthdate" && !ageConfirmed) {
+      setAgeModalVisible(true);
       return;
     }
     if (step < STEPS.length - 1) {
@@ -160,6 +222,16 @@ export default function OnboardingScreen() {
 
   const back = () => {
     if (step > 0) setStep((s) => s - 1);
+  };
+
+  const skip = () => {
+    if (step < STEPS.length - 1) setStep((s) => s + 1);
+  };
+
+  const confirmAge = () => {
+    setAgeConfirmed(true);
+    setAgeModalVisible(false);
+    setStep((s) => Math.min(s + 1, STEPS.length - 1));
   };
 
   const addMockPhoto = () => {
@@ -205,6 +277,91 @@ export default function OnboardingScreen() {
             />
           </>
         );
+
+      case "birthdate":
+        return (
+          <>
+            <TextInput
+              style={[styles.input, styles.birthInput]}
+              placeholder="DD/MM/AAAA"
+              placeholderTextColor="rgba(255,255,255,0.4)"
+              value={draft.birthDate}
+              onChangeText={(text) => {
+                setAgeConfirmed(false);
+                patch({ birthDate: formatBirthInput(text) });
+              }}
+              keyboardType="number-pad"
+              maxLength={10}
+            />
+            {birthParsed ? (
+              <View style={styles.zodiacCard}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.zodiacText}>
+                    Seu signo é: <Text style={styles.zodiacSign}>{birthZodiac}</Text>. Quer exibir no
+                    seu perfil? Você pode modificar esse item mais tarde.
+                  </Text>
+                </View>
+                <Switch
+                  value={!!draft.showZodiac}
+                  onValueChange={(showZodiac) => patch({ showZodiac })}
+                  trackColor={{ false: "rgba(255,255,255,0.15)", true: "rgba(24,211,166,0.5)" }}
+                  thumbColor={draft.showZodiac ? colors.accent : "#888"}
+                />
+              </View>
+            ) : null}
+          </>
+        );
+
+      case "identity":
+        return (
+          <View style={styles.chips}>
+            {GENDER_OPTIONS.map((opt) => (
+              <Chip
+                key={opt.id}
+                label={opt.label}
+                selected={draft.gender === opt.id}
+                onPress={() => patch({ gender: opt.id })}
+              />
+            ))}
+          </View>
+        );
+
+      case "seeking":
+        return (
+          <View style={styles.chips}>
+            {INTERESTED_IN_OPTIONS.map((opt) => (
+              <Chip
+                key={opt.id}
+                label={opt.label}
+                selected={(draft.interestedIn || []).includes(opt.id)}
+                onPress={() =>
+                  patch({ interestedIn: toggleInList(draft.interestedIn || [], opt.id, 4) })
+                }
+              />
+            ))}
+          </View>
+        );
+
+      case "intent":
+        return (
+          <View style={styles.chips}>
+            {RELATIONSHIP_INTENTS.map((opt) => (
+              <Chip
+                key={opt.id}
+                label={opt.label}
+                selected={(draft.relationshipIntents || []).includes(opt.id)}
+                onPress={() =>
+                  patch({
+                    relationshipIntents: toggleInList(draft.relationshipIntents || [], opt.id, 5),
+                  })
+                }
+              />
+            ))}
+          </View>
+        );
+
+      case "height":
+        return <HeightWheel value={draft.heightCm} onChange={(heightCm) => patch({ heightCm })} />;
 
       case "lifestyle":
         return (
@@ -377,12 +534,11 @@ export default function OnboardingScreen() {
               por enquanto — o GPS chega na próxima etapa.
             </Text>
             <Text style={styles.label}>Cidade</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ex.: Brasília - DF"
-              placeholderTextColor="rgba(255,255,255,0.4)"
+            <CityAutocomplete
               value={draft.city}
-              onChangeText={(city) => patch({ city })}
+              onSelect={(c) =>
+                patch({ city: c.label, cityInfo: { id: c.id, name: c.name, uf: c.uf } })
+              }
             />
             <PrimaryButton
               title={draft.locationGranted ? "Localização liberada ✓" : "Permitir localização (depois)"}
@@ -403,9 +559,16 @@ export default function OnboardingScreen() {
       <View style={styles.progressTrack}>
         <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
       </View>
-      <Text style={styles.stepCount}>
-        {step + 1} de {STEPS.length}
-      </Text>
+      <View style={styles.stepRow}>
+        <Text style={styles.stepCount}>
+          {step + 1} de {STEPS.length}
+        </Text>
+        {current.optional ? (
+          <TouchableOpacity onPress={skip} activeOpacity={0.8} hitSlop={8}>
+            <Text style={styles.skipText}>Passar</Text>
+          </TouchableOpacity>
+        ) : null}
+      </View>
 
       <ScreenHeader
         title={current.title}
@@ -427,6 +590,32 @@ export default function OnboardingScreen() {
           disabled={!canContinue()}
         />
       </View>
+
+      <Modal
+        visible={ageModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setAgeModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalSheet}>
+            <View style={styles.modalIcon}>
+              <Feather name="gift" size={24} color={colors.accentDark} />
+            </View>
+            <Text style={styles.modalTitle}>Você tem {birthAge} anos?</Text>
+            <Text style={styles.modalCopy}>
+              Verifique se a sua idade está correta, você não poderá modificá-la depois.
+            </Text>
+            <PrimaryButton title="Confirmar" onPress={confirmAge} />
+            <PrimaryButton
+              title="Modificar"
+              variant="ghost"
+              onPress={() => setAgeModalVisible(false)}
+              style={{ marginTop: 10 }}
+            />
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }

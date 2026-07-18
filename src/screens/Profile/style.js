@@ -10,6 +10,7 @@ export const styles = StyleSheet.create({
   avatarLetter: { color: colors.accent, fontSize: 36, fontWeight: "800" },
   name: { color: colors.text, fontSize: 24, fontWeight: "800", marginTop: 12 },
   city: { color: colors.textMuted, fontSize: 14, marginTop: 4 },
+  metaLine: { color: colors.accent, fontSize: 13, fontWeight: "700", marginTop: 6 },
   bio: { color: colors.textMuted, fontSize: 14, textAlign: "center", marginTop: 10, lineHeight: 20, paddingHorizontal: 12 },
   section: {
     backgroundColor: colors.bgCard,
