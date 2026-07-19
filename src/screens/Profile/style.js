@@ -2,7 +2,7 @@ import { StyleSheet } from "react-native";
 import { colors } from "../../theme/colors";
 
 export const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg },
+  screen: { flex: 1, backgroundColor: "transparent" },
   content: { paddingHorizontal: 18, paddingBottom: 40 },
   header: { alignItems: "center", marginTop: 12, marginBottom: 24 },
   avatar: { width: 96, height: 96, borderRadius: 48, backgroundColor: "#222" },

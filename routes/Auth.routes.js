@@ -10,7 +10,9 @@ const Stack = createNativeStackNavigator();
 
 export default function AuthRoutes() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "transparent" } }}
+    >
       <Stack.Screen name="SignIn" component={SignInScreen} />
       <Stack.Screen name="TermsConsent" component={TermsConsentScreen} />
       <Stack.Screen name="PhoneAuth" component={PhoneAuthScreen} />

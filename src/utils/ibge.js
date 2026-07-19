@@ -13,6 +13,54 @@ const CACHE_KEY = "@matchmaromba:ibge-municipios";
 let memoryCache = null;
 let loadingPromise = null;
 
+/**
+ * O IBGE considera Brasília o único município do DF. Para o lançamento
+ * regional, complementamos a busca com as 35 Regiões Administrativas.
+ */
+export const DF_ADMINISTRATIVE_REGIONS = [
+  "Plano Piloto",
+  "Gama",
+  "Taguatinga",
+  "Brazlândia",
+  "Sobradinho",
+  "Planaltina",
+  "Paranoá",
+  "Núcleo Bandeirante",
+  "Ceilândia",
+  "Guará",
+  "Cruzeiro",
+  "Samambaia",
+  "Santa Maria",
+  "São Sebastião",
+  "Recanto das Emas",
+  "Lago Sul",
+  "Riacho Fundo",
+  "Lago Norte",
+  "Candangolândia",
+  "Águas Claras",
+  "Riacho Fundo II",
+  "Sudoeste/Octogonal",
+  "Varjão",
+  "Park Way",
+  "SCIA/Estrutural",
+  "Sobradinho II",
+  "Jardim Botânico",
+  "Itapoã",
+  "SIA",
+  "Vicente Pires",
+  "Fercal",
+  "Sol Nascente/Pôr do Sol",
+  "Arniqueira",
+  "Arapoanga",
+  "Água Quente",
+].map((name, index) => ({
+  id: `df-ra-${index + 1}`,
+  name,
+  uf: "DF",
+  type: "administrative_region",
+  source: "GDF",
+}));
+
 function simplify(raw) {
   return raw.map((m) => ({
     id: m.id,
@@ -21,6 +69,8 @@ function simplify(raw) {
       m.microrregiao?.mesorregiao?.UF?.sigla ||
       m["regiao-imediata"]?.["regiao-intermediaria"]?.UF?.sigla ||
       "",
+    type: "municipality",
+    source: "IBGE",
   }));
 }
 
@@ -63,14 +113,23 @@ function normalize(text) {
 export async function searchCities(query, limit = 8) {
   const term = normalize(query.trim());
   if (term.length < 2) return [];
-  const cities = await loadCities();
+  const ibgeCities = await loadCities();
+  // As regiões do DF vêm primeiro para priorizar o público inicial do app.
+  const cities = [...DF_ADMINISTRATIVE_REGIONS, ...ibgeCities];
   const starts = [];
   const contains = [];
+  const seen = new Set();
   for (const city of cities) {
     const name = normalize(city.name);
-    if (name.startsWith(term)) starts.push(city);
-    else if (name.includes(term)) contains.push(city);
-    if (starts.length >= limit) break;
+    const key = `${name}-${city.uf}`;
+    if (seen.has(key)) continue;
+    if (name.startsWith(term)) {
+      starts.push(city);
+      seen.add(key);
+    } else if (name.includes(term)) {
+      contains.push(city);
+      seen.add(key);
+    }
   }
   return [...starts, ...contains].slice(0, limit);
 }

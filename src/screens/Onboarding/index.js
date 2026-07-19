@@ -183,7 +183,7 @@ export default function OnboardingScreen() {
       case "photos":
         return draft.photos.length >= 1;
       case "location":
-        return !!draft.city || draft.locationGranted;
+        return !!draft.city;
       default:
         return true;
     }
@@ -245,10 +245,6 @@ export default function OnboardingScreen() {
       return;
     }
     patch({ photos: [...draft.photos, { uri: uris[draft.photos.length % uris.length] }] });
-  };
-
-  const grantLocation = () => {
-    patch({ locationGranted: true, city: draft.city || "Brasília - DF" });
   };
 
   const renderStep = () => {
@@ -530,21 +526,24 @@ export default function OnboardingScreen() {
         return (
           <>
             <Text style={styles.helper}>
-              O raio já foi definido no sensor ({draft.tolerance.maxDistanceKm} km). Informe a cidade
-              por enquanto — o GPS chega na próxima etapa.
+              O raio já foi definido no sensor ({draft.tolerance.maxDistanceKm} km). Informe sua
+              cidade ou região — obrigatório para mostrar pessoas perto de você.
             </Text>
             <Text style={styles.label}>Cidade</Text>
             <CityAutocomplete
               value={draft.city}
               onSelect={(c) =>
-                patch({ city: c.label, cityInfo: { id: c.id, name: c.name, uf: c.uf } })
+                patch({
+                  city: c.label,
+                  cityInfo: {
+                    id: c.id,
+                    name: c.name,
+                    uf: c.uf,
+                    type: c.type,
+                    source: c.source,
+                  },
+                })
               }
-            />
-            <PrimaryButton
-              title={draft.locationGranted ? "Localização liberada ✓" : "Permitir localização (depois)"}
-              variant={draft.locationGranted ? "primary" : "ghost"}
-              onPress={grantLocation}
-              style={{ marginTop: 16 }}
             />
           </>
         );

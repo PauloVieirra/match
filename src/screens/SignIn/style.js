@@ -4,7 +4,7 @@ import { colors } from "../../theme/colors";
 export const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: "transparent",
   },
   heroImage: {
     flex: 1,
@@ -65,11 +65,12 @@ export const styles = StyleSheet.create({
     backgroundColor: "rgba(24,211,166,0.16)",
     borderWidth: 1,
     borderColor: "rgba(24,211,166,0.38)",
+    // Sombra apenas no iOS: no Android, elevation em fundo translúcido
+    // desenha uma mancha escura dentro do botão.
     shadowColor: colors.accent,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.25,
     shadowRadius: 14,
-    elevation: 8,
   },
   phoneBtnText: {
     color: colors.text,
@@ -113,7 +114,6 @@ export const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.35,
     shadowRadius: 12,
-    elevation: 10,
   },
 
   terms: {

@@ -1,13 +1,16 @@
 import React, { useContext } from "react";
 import { View, Text, ScrollView, Image, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
 import { AppContext } from "../../../contexts/ContextAPI";
 import { RANKING, MY_RANKING, ACHIEVEMENT_BADGES } from "../../data/mockRanking";
+import { mockUsers } from "../../data/mockUsers";
 import { colors } from "../../theme/colors";
 import { styles } from "./style";
 
 const badgeById = (id) => ACHIEVEMENT_BADGES.find((b) => b.id === id);
+const hasProfile = (id) => mockUsers.some((u) => u.id === id);
 
 function Trend({ trend }) {
   if (trend === "up") return <Feather name="chevron-up" size={14} color={colors.online} />;
@@ -15,10 +18,10 @@ function Trend({ trend }) {
   return <Feather name="minus" size={14} color={colors.textDim} />;
 }
 
-function PodiumSlot({ entry, position, big }) {
+function PodiumSlot({ entry, position, big, onPress }) {
   const ringColors = { 1: colors.accent, 2: "#C8D1D9", 3: "#D89B6A" };
   return (
-    <View style={styles.podiumSlot}>
+    <TouchableOpacity style={styles.podiumSlot} activeOpacity={0.85} onPress={onPress}>
       <View style={styles.podiumRankRow}>
         <Trend trend={entry.trend} />
         <Text style={styles.podiumRank}>{position}º</Text>
@@ -41,14 +44,14 @@ function PodiumSlot({ entry, position, big }) {
         {entry.title}
       </Text>
       <Text style={styles.podiumXp}>{entry.xp.toLocaleString("pt-BR")} XP</Text>
-    </View>
+    </TouchableOpacity>
   );
 }
 
-function RankRow({ entry, position }) {
+function RankRow({ entry, position, onPress }) {
   const badges = (entry.badges || []).map(badgeById).filter(Boolean);
   return (
-    <View style={styles.rankRow}>
+    <TouchableOpacity style={styles.rankRow} activeOpacity={0.85} onPress={onPress}>
       <View style={styles.rankPosBox}>
         <Text style={styles.rankPos}>{position}</Text>
         <Trend trend={entry.trend} />
@@ -72,18 +75,24 @@ function RankRow({ entry, position }) {
           ))}
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
 export default function HomeScreen() {
   const { user } = useContext(AppContext);
+  const navigation = useNavigation();
   const profile = user?.profile || {};
   const name = (profile.name || user?.name || "Atleta").split(" ")[0];
 
   const [second, first, third] = [RANKING[1], RANKING[0], RANKING[2]];
   const rest = RANKING.slice(3);
   const myBadges = MY_RANKING.badges.map(badgeById).filter(Boolean);
+
+  const openProfile = (entry) => {
+    if (!hasProfile(entry.id)) return;
+    navigation.navigate("ProfileDetail", { userId: entry.id });
+  };
 
   return (
     <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
@@ -100,16 +109,16 @@ export default function HomeScreen() {
         </Text>
 
         <View style={styles.podium}>
-          <PodiumSlot entry={second} position={2} />
-          <PodiumSlot entry={first} position={1} big />
-          <PodiumSlot entry={third} position={3} />
+          <PodiumSlot entry={second} position={2} onPress={() => openProfile(second)} />
+          <PodiumSlot entry={first} position={1} big onPress={() => openProfile(first)} />
+          <PodiumSlot entry={third} position={3} onPress={() => openProfile(third)} />
         </View>
 
         <View style={styles.listCard}>
           {rest.map((entry, i) => (
             <View key={entry.id}>
               {i > 0 ? <View style={styles.rowDivider} /> : null}
-              <RankRow entry={entry} position={i + 4} />
+              <RankRow entry={entry} position={i + 4} onPress={() => openProfile(entry)} />
             </View>
           ))}
         </View>

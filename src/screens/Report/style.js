@@ -2,7 +2,7 @@ import { StyleSheet } from "react-native";
 import { colors } from "../../theme/colors";
 
 export const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+  container: { flex: 1, backgroundColor: "transparent" },
   content: { paddingHorizontal: 18, paddingBottom: 24 },
   label: { color: colors.text, fontSize: 14, fontWeight: "700", marginBottom: 10, marginTop: 8 },
   chips: { flexDirection: "row", flexWrap: "wrap" },

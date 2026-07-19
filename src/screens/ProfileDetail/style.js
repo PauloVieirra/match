@@ -4,7 +4,7 @@ import { colors } from "../../theme/colors";
 export const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: "transparent",
   },
   missing: {
     color: colors.text,
@@ -176,6 +176,10 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.bgCard,
     borderWidth: 1,
     borderColor: colors.border,
+    overflow: "hidden",
+  },
+  photoImage: {
+    borderRadius: 21,
   },
   bio: {
     color: colors.textMuted,

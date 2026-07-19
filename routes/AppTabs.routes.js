@@ -27,7 +27,7 @@ export default function AppTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarHideOnKeyboard: true,
+        sceneStyle: { backgroundColor: "transparent" },
         tabBarActiveTintColor: "#18D3A6",
         tabBarInactiveTintColor: "rgba(255,255,255,0.45)",
         tabBarStyle: {

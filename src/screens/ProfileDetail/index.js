@@ -3,8 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  Image,
-  ImageBackground,
   TouchableOpacity,
   useWindowDimensions,
 } from "react-native";
@@ -13,6 +11,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Feather } from "@expo/vector-icons";
 import { AppContext } from "../../../contexts/ContextAPI";
 import { getMockUserById } from "../../data/mockUsers";
+import { buildPhotoId } from "../../services/photoLikesService";
+import { usePhotoLikes } from "../../hooks/usePhotoLikes";
+import LikablePhoto from "../../Components/ui/LikablePhoto";
 import { colors } from "../../theme/colors";
 import { styles } from "./style";
 
@@ -25,12 +26,33 @@ function Tag({ label }) {
 }
 
 export default function ProfileDetailScreen({ navigation, route }) {
-  const { sendConnectionRequest, connectionStatus } = useContext(AppContext);
+  const { user: viewer, sendConnectionRequest, connectionStatus } = useContext(AppContext);
   const userId = route?.params?.userId;
   const passed = route?.params?.user;
   const user = useMemo(() => passed || getMockUserById(userId), [passed, userId]);
   const { height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+
+  const photos = useMemo(
+    () => (user?.photos?.length ? user.photos : user?.image ? [user.image] : []),
+    [user]
+  );
+  const photoIds = useMemo(
+    () => photos.map((p, i) => buildPhotoId(user?.id || "unknown", p, i)),
+    [photos, user?.id]
+  );
+  const viewerId = viewer?.phone || viewer?.id || "viewer-local";
+  const { likes, toggleLike } = usePhotoLikes(photoIds, viewerId);
+
+  const likeProps = (index) => {
+    const photoId = photoIds[index];
+    const snapshot = likes[photoId] || { count: 0, likedByMe: false };
+    return {
+      liked: snapshot.likedByMe,
+      count: snapshot.count,
+      onToggle: () => toggleLike(photoId),
+    };
+  };
 
   if (!user) {
     return (
@@ -43,7 +65,6 @@ export default function ProfileDetailScreen({ navigation, route }) {
     );
   }
 
-  const photos = user.photos?.length ? user.photos : user.image ? [user.image] : [];
   const [hero, ...rest] = photos;
   const mid = Math.ceil(rest.length / 2);
   const photosMid = rest.slice(0, mid);
@@ -68,10 +89,12 @@ export default function ProfileDetailScreen({ navigation, route }) {
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <ImageBackground
+        <LikablePhoto
           source={hero}
-          resizeMode="cover"
           style={[styles.hero, { height: windowHeight }]}
+          contentStyle={{ justifyContent: "flex-end" }}
+          chipStyle={{ bottom: 30, right: 14 }}
+          {...likeProps(0)}
         >
           <LinearGradient
             colors={[
@@ -85,7 +108,8 @@ export default function ProfileDetailScreen({ navigation, route }) {
             style={styles.heroGradient}
           />
 
-          <View style={[styles.heroInfo, { paddingBottom: 28 }]}>
+          {/* paddingRight evita que o texto passe por baixo do chip de curtidas */}
+          <View style={[styles.heroInfo, { paddingBottom: 28, paddingRight: 92 }]}>
             <Text style={styles.name}>
               {user.name}, {user.age}
             </Text>
@@ -108,7 +132,7 @@ export default function ProfileDetailScreen({ navigation, route }) {
               </Text>
             ) : null}
           </View>
-        </ImageBackground>
+        </LikablePhoto>
 
         <View style={styles.body}>
           {user.lookingFor ? (
@@ -141,7 +165,13 @@ export default function ProfileDetailScreen({ navigation, route }) {
           </View>
 
           {photosMid.map((p, i) => (
-            <Image key={`mid-${i}`} source={p} style={styles.photo} />
+            <LikablePhoto
+              key={`mid-${i}`}
+              source={p}
+              style={styles.photo}
+              imageStyle={styles.photoImage}
+              {...likeProps(i + 1)}
+            />
           ))}
 
           {user.motto ? (
@@ -174,7 +204,13 @@ export default function ProfileDetailScreen({ navigation, route }) {
           ) : null}
 
           {photosEnd.map((p, i) => (
-            <Image key={`end-${i}`} source={p} style={styles.photo} />
+            <LikablePhoto
+              key={`end-${i}`}
+              source={p}
+              style={styles.photo}
+              imageStyle={styles.photoImage}
+              {...likeProps(i + 1 + photosMid.length)}
+            />
           ))}
 
           {user.bio ? (

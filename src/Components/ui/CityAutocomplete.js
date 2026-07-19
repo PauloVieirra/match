@@ -14,7 +14,7 @@ import { colors } from "../../theme/colors";
 /**
  * Campo de cidade com sugestões da API do IBGE.
  * `value` é o rótulo atual ("Brasília - DF"); ao selecionar, chama
- * onSelect({ id, name, uf, label }).
+ * onSelect({ id, name, uf, type, source, label }).
  */
 export default function CityAutocomplete({ value, onSelect, placeholder = "Digite sua cidade" }) {
   const [text, setText] = useState(value || "");
@@ -84,7 +84,10 @@ export default function CityAutocomplete({ value, onSelect, placeholder = "Digit
               onPress={() => pick(city)}
             >
               <Text style={styles.itemName}>{city.name}</Text>
-              <Text style={styles.itemUf}>{city.uf}</Text>
+              <Text style={styles.itemUf}>
+                {city.uf}
+                {city.type === "administrative_region" ? " · RA" : ""}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>

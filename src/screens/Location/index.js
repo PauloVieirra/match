@@ -37,7 +37,13 @@ export default function LocationScreen({ navigation }) {
           value={city}
           onSelect={(c) => {
             setCity(c.label);
-            setCityInfo({ id: c.id, name: c.name, uf: c.uf });
+            setCityInfo({
+              id: c.id,
+              name: c.name,
+              uf: c.uf,
+              type: c.type,
+              source: c.source,
+            });
           }}
         />
         <PrimaryButton

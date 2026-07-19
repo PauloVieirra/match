@@ -1,10 +1,17 @@
 import React, { useContext } from "react";
-import { NavigationContainer } from "@react-navigation/native";
+import { DarkTheme, NavigationContainer } from "@react-navigation/native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Routes from "./routes/Routes";
 import { AppContext, AppProvider } from "./contexts/ContextAPI";
 import ConnectionNotification from "./src/Components/ConnectionNotification";
+import AppBackground from "./src/Components/ui/AppBackground";
 import { navigationRef, openMatchScreen } from "./routes/navigationRef";
+
+// Fundo transparente nas telas para o gradiente global (AppBackground) aparecer.
+const navTheme = {
+  ...DarkTheme,
+  colors: { ...DarkTheme.colors, background: "transparent" },
+};
 
 function AppContent() {
   const {
@@ -20,14 +27,16 @@ function AppContent() {
   };
 
   return (
-    <NavigationContainer ref={navigationRef}>
-      <Routes />
-      <ConnectionNotification
-        visible={!!connectionNotification && !!user?.onboardingCompleted}
-        onPress={openNotification}
-        onClose={dismissConnectionNotification}
-      />
-    </NavigationContainer>
+    <AppBackground>
+      <NavigationContainer ref={navigationRef} theme={navTheme}>
+        <Routes />
+        <ConnectionNotification
+          visible={!!connectionNotification && !!user?.onboardingCompleted}
+          onPress={openNotification}
+          onClose={dismissConnectionNotification}
+        />
+      </NavigationContainer>
+    </AppBackground>
   );
 }
 

@@ -4,7 +4,7 @@ import { colors } from "../../theme/colors";
 export const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: "transparent",
   },
   content: {
     paddingHorizontal: 18,

@@ -120,7 +120,16 @@ export default function EditProfileScreen({ navigation }) {
         <CityAutocomplete
           value={draft.city}
           onSelect={(c) =>
-            patch({ city: c.label, cityInfo: { id: c.id, name: c.name, uf: c.uf } })
+            patch({
+              city: c.label,
+              cityInfo: {
+                id: c.id,
+                name: c.name,
+                uf: c.uf,
+                type: c.type,
+                source: c.source,
+              },
+            })
           }
         />
         <Text style={styles.label}>Ocupação</Text>

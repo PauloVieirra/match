@@ -4,13 +4,14 @@ import { AppContext } from "../contexts/ContextAPI";
 import AppRoutes from "./App.routes";
 import AuthRoutes from "./Auth.routes";
 import OnboardingRoutes from "./Onboarding.routes";
+import PreparingScreen from "../src/screens/Preparing";
 
 export default function Routes() {
-  const { user, loading } = useContext(AppContext);
+  const { user, loading, preparing } = useContext(AppContext);
 
   if (loading) {
     return (
-      <View style={{ flex: 1, backgroundColor: "#0B0D0F", alignItems: "center", justifyContent: "center" }}>
+      <View style={{ flex: 1, backgroundColor: "transparent", alignItems: "center", justifyContent: "center" }}>
         <ActivityIndicator color="#18D3A6" size="large" />
       </View>
     );
@@ -18,5 +19,6 @@ export default function Routes() {
 
   if (!user) return <AuthRoutes />;
   if (!user.onboardingCompleted) return <OnboardingRoutes />;
+  if (preparing) return <PreparingScreen />;
   return <AppRoutes />;
 }

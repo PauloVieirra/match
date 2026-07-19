@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, FlatList, Alert } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, FlatList, Alert, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MapView, { Marker, UrlTile } from "react-native-maps";
 import * as Location from "expo-location";
@@ -39,6 +39,7 @@ export default function CheckInScreen() {
   const [coords, setCoords] = useState(null);
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [query, setQuery] = useState("");
+  const [mapReady, setMapReady] = useState(false);
 
   const testVenue = useMemo(
     () =>
@@ -58,13 +59,23 @@ export default function CheckInScreen() {
     [coords]
   );
 
-  const applyCoords = (next) => {
-    setCoords(next);
+  const centerOnUser = (next) => {
+    if (!next) return;
     mapRef.current?.animateToRegion(
       { ...next, latitudeDelta: 0.008, longitudeDelta: 0.008 },
       600
     );
   };
+
+  const applyCoords = (next) => {
+    setCoords(next);
+    centerOnUser(next);
+  };
+
+  // Garante a centralização mesmo que as coordenadas cheguem antes do mapa estar pronto.
+  useEffect(() => {
+    if (mapReady && coords) centerOnUser(coords);
+  }, [mapReady]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     let mounted = true;
@@ -199,14 +210,24 @@ export default function CheckInScreen() {
         ref={mapRef}
         style={styles.map}
         initialRegion={FALLBACK_REGION}
+        onMapReady={() => setMapReady(true)}
         showsUserLocation={false}
         showsMyLocationButton={false}
         toolbarEnabled={false}
+        showsPointsOfInterest={false}
+        showsBuildings={false}
+        showsIndoors={false}
+        // Desliga o mapa base do Google no Android — sem isso, os POIs
+        // (lojas, comércios) renderizam por cima dos tiles CARTO.
+        mapType={Platform.OS === "android" ? "none" : "standard"}
       >
+        {/* Tiles CARTO sem rótulos (dados OpenStreetMap) — o mapa fica limpo e
+            só aparecem os locais/eventos cadastrados no app, via Markers. */}
         <UrlTile
-          urlTemplate="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          urlTemplate="https://a.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png"
           maximumZ={19}
           flipY={false}
+          shouldReplaceMapContent
         />
         {venues.map((venue) => (
           <Marker
@@ -247,7 +268,7 @@ export default function CheckInScreen() {
         ) : null}
 
         <FlatList
-          data={venues.slice(0, 6)}
+          data={venues.slice(0, 2)}
           keyExtractor={(item) => item.id}
           style={styles.venueList}
           keyboardShouldPersistTaps="handled"
@@ -262,12 +283,26 @@ export default function CheckInScreen() {
         />
       </View>
 
+      {coords ? (
+        <TouchableOpacity
+          style={[styles.recenterBtn, { bottom: insets.bottom + 64 }]}
+          activeOpacity={0.85}
+          onPress={() => centerOnUser(coords)}
+        >
+          <Feather name="crosshair" size={19} color={colors.accent} />
+        </TouchableOpacity>
+      ) : null}
+
       <View style={[styles.todayChip, { bottom: insets.bottom + 14 }]}>
         <Feather name="zap" size={13} color={colors.accent} />
         <Text style={styles.todayText}>
           {todayCount} check-in{todayCount === 1 ? "" : "s"} hoje · {checkIns.length} no total
         </Text>
       </View>
+
+      <Text style={[styles.attribution, { bottom: insets.bottom + 2 }]}>
+        © OpenStreetMap · © CARTO
+      </Text>
     </View>
   );
 }

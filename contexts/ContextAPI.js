@@ -1,6 +1,8 @@
 import React, { createContext, useState, useEffect, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { DEFAULT_FILTERS, emptyProfile, filtersFromTolerance } from "../src/data/lifestyleOptions";
+import { DEFAULT_FILTERS, emptyProfile, filtersFromTolerance, mergeFiltersWithProfile } from "../src/data/lifestyleOptions";
+import { filterCompatibleProfiles } from "../src/utils/profileMatcher";
+import { mockUsers } from "../src/data/mockUsers";
 
 export const AppContext = createContext();
 
@@ -28,6 +30,8 @@ export function AppProvider({ children }) {
   const [connectionState, setConnectionState] = useState(EMPTY_CONNECTIONS);
   const [checkIns, setCheckIns] = useState([]);
   const [loading, setLoading] = useState(true);
+  // true entre o fim do cadastro e o conteúdo inicial pronto (tela "preparando tudo")
+  const [preparing, setPreparing] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -285,6 +289,7 @@ export function AppProvider({ children }) {
 
   const completeOnboarding = async (profileData) => {
     if (!user) return;
+    setPreparing(true);
     const nextProfile = { ...user.profile, ...profileData };
     const next = {
       ...user,
@@ -302,6 +307,19 @@ export function AppProvider({ children }) {
         : [],
     };
     await persistFilters(synced);
+
+    // Pré-carrega o conteúdo inicial (grid compatível) aplicando as preferências.
+    // No backend real, este é o momento de buscar perfis, matches e notificações.
+    try {
+      const resolved = mergeFiltersWithProfile(synced, nextProfile);
+      filterCompatibleProfiles(mockUsers, {
+        myLifestyles: nextProfile.lifestyles || [],
+        filters: resolved,
+      });
+      await new Promise((resolve) => setTimeout(resolve, 4200));
+    } finally {
+      setPreparing(false);
+    }
   };
 
   const setFilters = async (nextFilters) => {
@@ -334,6 +352,7 @@ export function AppProvider({ children }) {
         setFilters,
         loading,
         setLoading,
+        preparing,
         login,
         loginWithPhone,
         logout,
