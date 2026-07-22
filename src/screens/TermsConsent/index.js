@@ -30,14 +30,20 @@ const TERMS = [
   },
 ];
 
-export default function TermsConsentScreen({ navigation }) {
+export default function TermsConsentScreen({ navigation, route }) {
   const [accepted, setAccepted] = useState(false);
+  const nextScreen = route?.params?.next === "PhoneAuth" ? "PhoneAuth" : "EmailAuth";
+  const nextMode = nextScreen === "EmailAuth" ? "register" : undefined;
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right", "bottom"]}>
       <ScreenHeader
         title="Termos e Privacidade"
-        subtitle="Leia e concorde para criar sua conta com telefone."
+        subtitle={
+          nextScreen === "EmailAuth"
+            ? "Leia e concorde para criar ou entrar com e-mail."
+            : "Leia e concorde para criar sua conta com telefone."
+        }
         onBack={() => navigation.goBack()}
         large
       />
@@ -68,7 +74,9 @@ export default function TermsConsentScreen({ navigation }) {
 
         <PrimaryButton
           title="Concordar e continuar"
-          onPress={() => navigation.navigate("PhoneAuth")}
+          onPress={() =>
+            navigation.navigate(nextScreen, nextMode ? { mode: nextMode } : undefined)
+          }
           disabled={!accepted}
         />
       </View>

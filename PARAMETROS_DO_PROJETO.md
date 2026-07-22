@@ -1,6 +1,8 @@
 ESPECIFICAÇÃO DE REQUISITOS – MVP
 MATCH MAROMBA
 
+> **Nota de integração (2026-07-18):** o backend canônico em desenvolvimento é o monorepo `tinder-academia` (Express + Prisma + PostgreSQL + Socket.IO). Supabase, neste momento, entra só como OAuth Google opcional — não como stack completa abaixo. Estado do app: UI/mocks locais; API ainda não consumida. Ver `tinder-academia/docs/PLANEJAMENTO-MVP.md`.
+
 Objetivo
 Este documento descreve os requisitos funcionais, não funcionais, regras de negócio, fluxos, métricas e riscos do MVP (Produto Mínimo Viável) do aplicativo Match Maromba, uma plataforma social de descoberta focada no público fitness, inicialmente validada em Brasília e com potencial de expansão nacional.
 
@@ -8,12 +10,14 @@ Este documento descreve os requisitos funcionais, não funcionais, regras de neg
 O Match Maromba é um aplicativo mobile inspirado em plataformas de descoberta social por geolocalização, adaptado ao contexto de academias e estilo de vida fitness. O objetivo é
 conectar pessoas com afinidade de rotina de treino, frequência e objetivos físicos.
 
-A infraestrutura de backend será baseada no Supabase, utilizando:
+A infraestrutura de backend **alvo original** deste documento era Supabase full:
 - Autenticação (Supabase Auth)
 - Banco de dados PostgreSQL
 - Extensão geográfica PostGIS
 - Storage para mídia
 - Realtime para chat
+
+*(Alvo operacional atual: API `tinder-academia` — decisão de produto em aberto no planejamento.)*
 
 2. Escopo do MVP
 

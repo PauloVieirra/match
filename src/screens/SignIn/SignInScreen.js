@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -9,24 +9,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-import { AntDesign, Feather, FontAwesome } from "@expo/vector-icons";
-import { AppContext } from "../../../contexts/ContextAPI";
+import { Feather } from "@expo/vector-icons";
 import { colors } from "../../theme/colors";
 import { styles } from "./style";
 
 export default function SignInScreen({ navigation }) {
-  const { login } = useContext(AppContext);
-
-  // Mock da API de login social — substituir pela integração real (Supabase Auth).
-  const socialLogin = (provider) => {
-    login({
-      provider,
-      name: "",
-      phone: "",
-      onboardingCompleted: false,
-    });
-  };
-
   return (
     <View style={styles.screen}>
       <StatusBar barStyle="light-content" />
@@ -60,35 +47,24 @@ export default function SignInScreen({ navigation }) {
                 <TouchableOpacity
                   style={styles.phoneBtn}
                   activeOpacity={0.85}
-                  onPress={() => navigation.navigate("TermsConsent")}
+                  onPress={() => navigation.navigate("TermsConsent", { next: "EmailAuth" })}
                 >
-                  <Feather name="smartphone" size={18} color={colors.accent} />
-                  <Text style={styles.phoneBtnText}>Entrar com telefone</Text>
+                  <Feather name="mail" size={18} color={colors.accent} />
+                  <Text style={styles.phoneBtnText}>Entrar com e-mail</Text>
                 </TouchableOpacity>
 
-                <View style={styles.dividerRow}>
-                  <View style={styles.dividerLine} />
-                  <Text style={styles.dividerText}>ou continue com</Text>
-                  <View style={styles.dividerLine} />
-                </View>
+                <TouchableOpacity
+                  style={[styles.phoneBtn, styles.secondaryBtn]}
+                  activeOpacity={0.85}
+                  onPress={() => navigation.navigate("TermsConsent", { next: "PhoneAuth" })}
+                >
+                  <Feather name="smartphone" size={18} color={colors.textMuted} />
+                  <Text style={[styles.phoneBtnText, styles.secondaryBtnText]}>
+                    Entrar com telefone (mock)
+                  </Text>
+                </TouchableOpacity>
 
-                <View style={styles.socialRow}>
-                  <TouchableOpacity
-                    style={styles.dropBtn}
-                    activeOpacity={0.85}
-                    onPress={() => socialLogin("google")}
-                  >
-                    <AntDesign name="google" size={24} color="rgba(255,255,255,0.92)" />
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={styles.dropBtn}
-                    activeOpacity={0.85}
-                    onPress={() => socialLogin("apple")}
-                  >
-                    <FontAwesome name="apple" size={26} color="rgba(255,255,255,0.92)" />
-                  </TouchableOpacity>
-                </View>
+                {/* Logins com Google e Apple desabilitados até a configuração do OAuth. */}
 
                 <Text style={styles.terms}>
                   Ao continuar, você verá nossos Termos e Política de Privacidade antes de criar a

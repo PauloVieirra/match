@@ -5,6 +5,7 @@ import { AppContext } from "../../../contexts/ContextAPI";
 import CityAutocomplete from "../../Components/ui/CityAutocomplete";
 import PrimaryButton from "../../Components/ui/PrimaryButton";
 import ScreenHeader from "../../Components/ui/ScreenHeader";
+import { formatApiError } from "../../utils/api/formatApiError";
 import { styles } from "./style";
 
 export default function LocationScreen({ navigation }) {
@@ -18,9 +19,16 @@ export default function LocationScreen({ navigation }) {
   };
 
   const save = async () => {
-    await updateProfile({ city, cityInfo, locationGranted: granted });
-    Alert.alert("Salvo", "Localização atualizada.");
-    navigation.goBack();
+    try {
+      await updateProfile({ city, cityInfo, locationGranted: granted });
+      Alert.alert("Salvo", "Localização atualizada.");
+      navigation.goBack();
+    } catch (error) {
+      Alert.alert(
+        "Erro ao salvar",
+        formatApiError(error, "Não foi possível atualizar a localização."),
+      );
+    }
   };
 
   return (

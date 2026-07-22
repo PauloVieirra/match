@@ -3,6 +3,7 @@ import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import SignInScreen from "../src/screens/SignIn";
 import TermsConsentScreen from "../src/screens/TermsConsent";
+import EmailAuthScreen from "../src/screens/EmailAuth";
 import PhoneAuthScreen from "../src/screens/PhoneAuth";
 import VerifyCodeScreen from "../src/screens/VerifyCode";
 
@@ -15,6 +16,7 @@ export default function AuthRoutes() {
     >
       <Stack.Screen name="SignIn" component={SignInScreen} />
       <Stack.Screen name="TermsConsent" component={TermsConsentScreen} />
+      <Stack.Screen name="EmailAuth" component={EmailAuthScreen} />
       <Stack.Screen name="PhoneAuth" component={PhoneAuthScreen} />
       <Stack.Screen name="VerifyCode" component={VerifyCodeScreen} />
     </Stack.Navigator>

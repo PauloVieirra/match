@@ -77,6 +77,16 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
   },
+  secondaryBtn: {
+    marginTop: 10,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderColor: "rgba(255,255,255,0.14)",
+    shadowOpacity: 0,
+  },
+  secondaryBtnText: {
+    color: colors.textMuted,
+    fontWeight: "600",
+  },
 
   dividerRow: {
     flexDirection: "row",

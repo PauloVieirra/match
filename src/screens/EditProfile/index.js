@@ -27,6 +27,7 @@ import {
 import { parseBirthDate } from "../../utils/birthday";
 import { colors } from "../../theme/colors";
 import { styles } from "./style";
+import { formatApiError } from "../../utils/api/formatApiError";
 
 function toggle(list, item, max = 8) {
   if (list.includes(item)) return list.filter((x) => x !== item);
@@ -37,6 +38,7 @@ function toggle(list, item, max = 8) {
 export default function EditProfileScreen({ navigation }) {
   const { user, updateProfile } = useContext(AppContext);
   const p = user?.profile || {};
+  const [saving, setSaving] = useState(false);
   const [draft, setDraft] = useState({
     name: p.name || "",
     bio: p.bio || "",
@@ -90,9 +92,22 @@ export default function EditProfileScreen({ navigation }) {
       Alert.alert("Atenção", "Selecione ao menos uma atividade no sensor de tolerância.");
       return;
     }
-    await updateProfile(draft);
-    Alert.alert("Salvo", "Perfil e sensor de tolerância atualizados.");
-    navigation.goBack();
+
+    try {
+      setSaving(true);
+      await updateProfile({
+        ...draft,
+        // não reenvia name para alteração — API bloqueia mudança
+        name: p.name || draft.name,
+        birthDate: p.birthDate,
+      });
+      Alert.alert("Salvo", "Perfil e sensor de tolerância atualizados.");
+      navigation.goBack();
+    } catch (error) {
+      Alert.alert("Erro ao salvar", formatApiError(error, "Não foi possível atualizar o perfil."));
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -335,7 +350,7 @@ export default function EditProfileScreen({ navigation }) {
         </View>
       </ScrollView>
       <View style={styles.footer}>
-        <PrimaryButton title="Salvar" onPress={save} />
+        <PrimaryButton title="Salvar" onPress={save} loading={saving} disabled={saving} />
       </View>
     </SafeAreaView>
   );

@@ -3,6 +3,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { DEFAULT_FILTERS, emptyProfile, filtersFromTolerance, mergeFiltersWithProfile } from "../src/data/lifestyleOptions";
 import { filterCompatibleProfiles } from "../src/utils/profileMatcher";
 import { mockUsers } from "../src/data/mockUsers";
+import {
+  registerWithEmail as apiRegister,
+  loginWithEmail as apiLogin,
+  completeOnboardingOnApi,
+  logoutSession,
+} from "../src/services/api/auth";
+import { fetchMyProfile, fetchPublicProfile, updateMyProfileOnApi } from "../src/services/api/profile";
+import { getAccessToken } from "../src/services/session";
+import { mapApiUserToLocal } from "../src/services/api/mappers";
 
 export const AppContext = createContext();
 
@@ -36,13 +45,31 @@ export function AppProvider({ children }) {
   useEffect(() => {
     const load = async () => {
       try {
-        const [userJson, filtersJson, connectionsJson, checkInsJson] = await Promise.all([
+        const [userJson, filtersJson, connectionsJson, checkInsJson, token] = await Promise.all([
           AsyncStorage.getItem(USER_KEY),
           AsyncStorage.getItem(FILTERS_KEY),
           AsyncStorage.getItem(CONNECTIONS_KEY),
           AsyncStorage.getItem(CHECKINS_KEY),
+          getAccessToken(),
         ]);
-        if (userJson) setUser(JSON.parse(userJson));
+
+        let localUser = null;
+        if (userJson) {
+          localUser = JSON.parse(userJson);
+          setUser(localUser);
+        }
+
+        if (token) {
+          try {
+            const { user: apiUser } = await fetchMyProfile();
+            localUser = apiUser;
+            setUser(apiUser);
+            await AsyncStorage.setItem(USER_KEY, JSON.stringify(apiUser));
+          } catch (apiError) {
+            console.log("Perfil remoto indisponível, usando cache local:", apiError?.message);
+          }
+        }
+
         if (filtersJson) setFiltersState({ ...DEFAULT_FILTERS, ...JSON.parse(filtersJson) });
         if (connectionsJson) {
           setConnectionState({ ...EMPTY_CONNECTIONS, ...JSON.parse(connectionsJson) });
@@ -237,7 +264,24 @@ export function AppProvider({ children }) {
     await persistUser(next);
   };
 
+  const registerWithEmail = async ({ email, password, name, phone, termsAccepted = true }) => {
+    const { user } = await apiRegister({ email, password, name, phone, termsAccepted });
+    await persistUser(user);
+    return user;
+  };
+
+  const loginWithEmail = async ({ email, password }) => {
+    const { user } = await apiLogin({ email, password });
+    await persistUser(user);
+    return user;
+  };
+
   const logout = async () => {
+    try {
+      await logoutSession();
+    } catch (e) {
+      console.log("Erro ao limpar tokens:", e);
+    }
     await persistUser(null);
   };
 
@@ -263,7 +307,8 @@ export function AppProvider({ children }) {
   };
 
   const updateProfile = async (partial) => {
-    if (!user) return;
+    if (!user) return null;
+
     const nextProfile = { ...user.profile, ...partial };
     if (partial.tolerance) {
       nextProfile.tolerance = { ...(user.profile?.tolerance || {}), ...partial.tolerance };
@@ -271,32 +316,89 @@ export function AppProvider({ children }) {
     if (partial.habits) {
       nextProfile.habits = { ...(user.profile?.habits || {}), ...partial.habits };
     }
-    const next = {
+    if (partial.visibility) {
+      nextProfile.visibility = { ...(user.profile?.visibility || {}), ...partial.visibility };
+    }
+
+    // Nome/data de nascimento são imutáveis após onboarding
+    nextProfile.name = user.profile?.name || user.name || nextProfile.name;
+    nextProfile.birthDate = user.profile?.birthDate || nextProfile.birthDate;
+
+    let next = {
       ...user,
       profile: nextProfile,
-      name: partial.name ?? user.name,
+      name: nextProfile.name,
+      phone: nextProfile.phone || user.phone,
     };
+
+    try {
+      const token = await getAccessToken();
+      if (token && (user.provider === "email" || user.provider === "google")) {
+        const { user: apiUser } = await updateMyProfileOnApi({
+          ...partial,
+          name: nextProfile.name,
+          birthDate: nextProfile.birthDate,
+          tolerance: nextProfile.tolerance,
+          habits: nextProfile.habits,
+          visibility: nextProfile.visibility,
+          ...(partial.photos ? { photos: nextProfile.photos } : {}),
+        });
+        next = mapApiUserToLocal(apiUser, { isAdmin: user.isAdmin });
+      }
+    } catch (e) {
+      console.log("Erro ao atualizar perfil na API:", e);
+      throw e;
+    }
+
     await persistUser(next);
 
-    if (partial.tolerance) {
+    if (partial.tolerance || next.profile?.tolerance) {
       const synced = {
         ...filters,
-        ...filtersFromTolerance(nextProfile.tolerance, nextProfile.activityTypes || []),
+        ...filtersFromTolerance(next.profile.tolerance || {}, next.profile.activityTypes || []),
       };
       await persistFilters(synced);
     }
+
+    return next;
   };
 
   const completeOnboarding = async (profileData) => {
     if (!user) return;
     setPreparing(true);
-    const nextProfile = { ...user.profile, ...profileData };
-    const next = {
+
+    let nextProfile = { ...user.profile, ...profileData };
+    let next = {
       ...user,
       name: profileData.name || user.name,
       onboardingCompleted: true,
       profile: nextProfile,
     };
+
+    try {
+      const token = await getAccessToken();
+      if (token && user.provider === "email") {
+        const { user: apiUser } = await completeOnboardingOnApi({
+          ...nextProfile,
+          name: nextProfile.name?.trim?.() || nextProfile.name,
+          tolerance: {
+            ...nextProfile.tolerance,
+            requiredSports: nextProfile.tolerance?.sameSportOnly
+              ? nextProfile.tolerance.requiredSports?.length
+                ? nextProfile.tolerance.requiredSports
+                : nextProfile.activityTypes
+              : nextProfile.tolerance?.requiredSports || [],
+          },
+        });
+        next = mapApiUserToLocal(apiUser, { isAdmin: user.isAdmin });
+        nextProfile = next.profile;
+      }
+    } catch (e) {
+      console.log("Erro ao enviar onboarding para API:", e);
+      setPreparing(false);
+      throw e;
+    }
+
     await persistUser(next);
 
     const synced = {
@@ -343,6 +445,19 @@ export function AppProvider({ children }) {
     }
   };
 
+  const refreshMyProfile = useCallback(async () => {
+    const token = await getAccessToken();
+    if (!token) return null;
+    const { user: apiUser } = await fetchMyProfile();
+    await persistUser(apiUser);
+    return apiUser;
+  }, [persistUser]);
+
+  const getPublicProfile = useCallback(async (userId) => {
+    const { profile } = await fetchPublicProfile(userId);
+    return profile;
+  }, []);
+
   return (
     <AppContext.Provider
       value={{
@@ -355,9 +470,13 @@ export function AppProvider({ children }) {
         preparing,
         login,
         loginWithPhone,
+        registerWithEmail,
+        loginWithEmail,
         logout,
         updateProfile,
         completeOnboarding,
+        refreshMyProfile,
+        getPublicProfile,
         matches: connectionState.matches,
         connectionNotification: connectionState.notification,
         sendConnectionRequest,

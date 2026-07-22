@@ -1,10 +1,11 @@
-import React, { useContext, useMemo } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   useWindowDimensions,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -25,11 +26,43 @@ function Tag({ label }) {
   );
 }
 
+function looksLikeApiId(id) {
+  return typeof id === "string" && /^[a-f\d]{24}$/i.test(id);
+}
+
 export default function ProfileDetailScreen({ navigation, route }) {
-  const { user: viewer, sendConnectionRequest, connectionStatus } = useContext(AppContext);
+  const { user: viewer, sendConnectionRequest, connectionStatus, getPublicProfile } =
+    useContext(AppContext);
   const userId = route?.params?.userId;
   const passed = route?.params?.user;
-  const user = useMemo(() => passed || getMockUserById(userId), [passed, userId]);
+  const [remoteUser, setRemoteUser] = useState(null);
+  const [loadingRemote, setLoadingRemote] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      if (passed || !userId || !looksLikeApiId(userId) || !getPublicProfile) return;
+      setLoadingRemote(true);
+      try {
+        const profile = await getPublicProfile(userId);
+        if (!cancelled) setRemoteUser(profile);
+      } catch (error) {
+        console.log("Falha ao carregar perfil público:", error?.message);
+        if (!cancelled) setRemoteUser(null);
+      } finally {
+        if (!cancelled) setLoadingRemote(false);
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [passed, userId, getPublicProfile]);
+
+  const user = useMemo(
+    () => passed || remoteUser || getMockUserById(userId),
+    [passed, remoteUser, userId],
+  );
   const { height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
@@ -53,6 +86,14 @@ export default function ProfileDetailScreen({ navigation, route }) {
       onToggle: () => toggleLike(photoId),
     };
   };
+
+  if (loadingRemote && !user) {
+    return (
+      <SafeAreaView style={styles.screen}>
+        <ActivityIndicator color={colors.accent} style={{ marginTop: 40 }} />
+      </SafeAreaView>
+    );
+  }
 
   if (!user) {
     return (

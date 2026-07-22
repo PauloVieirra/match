@@ -31,7 +31,14 @@
         {
           "locationWhenInUsePermission": "Usamos sua localização apenas para listar locais de treino próximos e validar o check-in. Ela não é compartilhada com outras pessoas."
         }
-      ]
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Precisamos da galeria para você adicionar fotos ao perfil."
+        }
+      ],
+      "expo-secure-store"
     ]
   }
 }
