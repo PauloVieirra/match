@@ -66,6 +66,26 @@ Branch `feat/integracao-back-front` — primeira integração real com a API `ti
 ### Fixed
 
 - Erros da API (ex.: RLS no upload) exibidos na UI em vez de falha silenciosa
+- Mock Pexels removido do onboarding **e** da tela `Photos` (edição de perfil)
+- `expo-image-picker` instalado via `npx expo install` + plugin no `app.json`
+- Permissão de galeria solicitada antes de abrir o picker
+- Mensagens técnicas (`Supabase upload failed...`) substituídas por `formatApiError`
+- `ApiError` passa a expor `code` da API (`STORAGE_RLS_DENIED`, etc.)
+
+### Problemas documentados (integração)
+
+Registro completo: **[docs/TROUBLESHOOTING-INTEGRACAO.md](docs/TROUBLESHOOTING-INTEGRACAO.md)**
+
+| # | Problema | Resumo da correção |
+|---|----------|-------------------|
+| 1 | Fotos mockadas (Pexels) | `expo-image-picker` + base64 para API |
+| 2 | Picker sem permissão / plugin | `app.json` + `requestMediaLibraryPermissionsAsync` |
+| 3 | Galeria vazia no emulador | `adb push` para `/sdcard/Pictures/` |
+| 4 | `localhost` no Android emulador | `EXPO_PUBLIC_API_URL=http://10.0.2.2:3000` |
+| 5 | Erro RLS aparecia cru na UI | `formatApiError` + códigos do backend |
+| 6 | Foto sem base64 após pick | `launchImageLibraryAsync({ base64: true })` |
+| 7 | SDK Expo / picker incompatível | `npx expo install expo-image-picker` (não npm puro) |
+| 8 | `.env` do app cacheado no Metro | `npx expo start -c` após mudar URL |
 
 ---
 
