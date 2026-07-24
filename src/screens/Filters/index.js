@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, Alert, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppContext } from "../../../contexts/ContextAPI";
 import Chip from "../../Components/ui/Chip";
@@ -16,6 +16,8 @@ import {
   emptyTolerance,
   mergeFiltersWithProfile,
 } from "../../data/lifestyleOptions";
+import { formatApiError } from "../../utils/api/formatApiError";
+import { colors } from "../../theme/colors";
 import { styles } from "./style";
 
 function toggle(list, item) {
@@ -26,6 +28,7 @@ export default function FiltersScreen({ navigation }) {
   const { user, filters, setFilters } = useContext(AppContext);
   const merged = mergeFiltersWithProfile(filters, user?.profile);
   const [draft, setDraft] = useState({ ...DEFAULT_FILTERS, ...merged });
+  const [saving, setSaving] = useState(false);
 
   const patch = (partial) => setDraft((d) => ({ ...d, ...partial }));
 
@@ -40,8 +43,15 @@ export default function FiltersScreen({ navigation }) {
   };
 
   const apply = async () => {
-    await setFilters(draft);
-    navigation.goBack();
+    try {
+      setSaving(true);
+      await setFilters(draft);
+      navigation.goBack();
+    } catch (error) {
+      Alert.alert("Erro ao salvar", formatApiError(error, "Não foi possível salvar os filtros."));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const reset = () =>
@@ -126,7 +136,7 @@ export default function FiltersScreen({ navigation }) {
               ))}
             </View>
 
-            <Text style={styles.label}>Frequência mín. / máx. (semanal)</Text>
+            <Text style={styles.label}>Frequência (x/semana)</Text>
             <View style={styles.chips}>
               {[1, 2, 3, 4, 5, 6].map((n) => (
                 <Chip
@@ -168,8 +178,14 @@ export default function FiltersScreen({ navigation }) {
       </ScrollView>
 
       <View style={styles.footer}>
-        <PrimaryButton title="Limpar" variant="ghost" onPress={reset} style={{ flex: 1 }} />
-        <PrimaryButton title="Aplicar" onPress={apply} style={{ flex: 1.4 }} />
+        {saving ? (
+          <ActivityIndicator color={colors.primary} style={{ flex: 1 }} />
+        ) : (
+          <>
+            <PrimaryButton title="Limpar" variant="ghost" onPress={reset} style={{ flex: 1 }} />
+            <PrimaryButton title="Aplicar" onPress={apply} style={{ flex: 1.4 }} />
+          </>
+        )}
       </View>
     </SafeAreaView>
   );

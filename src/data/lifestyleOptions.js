@@ -234,22 +234,34 @@ export const emptyProfile = () => ({
   profession: "",
   habits: emptyHabits(),
   tolerance: emptyTolerance(),
+  filters: { ...DEFAULT_FILTERS },
 });
 
-/** Junta filtros da tela com tolerância salva no perfil (perfil é fonte do sensor). */
+/** Junta filtros da tela com preferências salvas no perfil (API ou local). */
 export function mergeFiltersWithProfile(filters = {}, profile = {}) {
+  const fromProfile = profile.filters || {};
   const t = profile.tolerance || emptyTolerance();
   return {
     ...DEFAULT_FILTERS,
     ...t,
+    ...fromProfile,
     ...filters,
-    maxDistanceKm: filters.maxDistanceKm ?? t.maxDistanceKm ?? 20,
-    openness: filters.openness ?? t.openness ?? "selective",
-    dealbreakers: filters.dealbreakers ?? t.dealbreakers ?? [],
-    sameSportOnly: filters.sameSportOnly ?? t.sameSportOnly ?? false,
+    maxDistanceKm:
+      filters.maxDistanceKm ??
+      fromProfile.maxDistanceKm ??
+      t.maxDistanceKm ??
+      20,
+    openness: filters.openness ?? fromProfile.openness ?? t.openness ?? "selective",
+    dealbreakers:
+      filters.dealbreakers ?? fromProfile.dealbreakers ?? t.dealbreakers ?? [],
+    sameSportOnly:
+      filters.sameSportOnly ?? fromProfile.sameSportOnly ?? t.sameSportOnly ?? false,
     requiredSports:
       (filters.requiredSports && filters.requiredSports.length
         ? filters.requiredSports
+        : null) ||
+      (fromProfile.requiredSports && fromProfile.requiredSports.length
+        ? fromProfile.requiredSports
         : null) ||
       t.requiredSports ||
       [],

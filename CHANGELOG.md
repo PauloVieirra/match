@@ -20,6 +20,18 @@ Versão canônica: campo `version` em [`package.json`](package.json).
 
 ---
 
+## [1.1.1] — 2026-07-24
+
+Persistência dos filtros de descoberta no backend.
+
+### Added
+
+- Persistência de `profile.filters` via `PATCH /profile/me`
+- Tela Filtros salva na API (não só AsyncStorage); boot hidrata filtros do perfil remoto
+- Loading/erro amigável ao aplicar filtros
+
+---
+
 ## [1.1.0] — 2026-07-22
 
 Branch `feat/integracao-back-front` — primeira integração real com a API `tinder-academia` (`auth-supabase`).

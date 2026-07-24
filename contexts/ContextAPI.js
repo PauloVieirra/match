@@ -65,12 +65,22 @@ export function AppProvider({ children }) {
             localUser = apiUser;
             setUser(apiUser);
             await AsyncStorage.setItem(USER_KEY, JSON.stringify(apiUser));
+            if (apiUser?.profile?.filters) {
+              const fromApi = {
+                ...DEFAULT_FILTERS,
+                ...apiUser.profile.filters,
+              };
+              setFiltersState(fromApi);
+              await AsyncStorage.setItem(FILTERS_KEY, JSON.stringify(fromApi));
+            }
           } catch (apiError) {
             console.log("Perfil remoto indisponível, usando cache local:", apiError?.message);
           }
         }
 
-        if (filtersJson) setFiltersState({ ...DEFAULT_FILTERS, ...JSON.parse(filtersJson) });
+        if (!token || !localUser?.profile?.filters) {
+          if (filtersJson) setFiltersState({ ...DEFAULT_FILTERS, ...JSON.parse(filtersJson) });
+        }
         if (connectionsJson) {
           setConnectionState({ ...EMPTY_CONNECTIONS, ...JSON.parse(connectionsJson) });
         }
@@ -313,6 +323,9 @@ export function AppProvider({ children }) {
     if (partial.tolerance) {
       nextProfile.tolerance = { ...(user.profile?.tolerance || {}), ...partial.tolerance };
     }
+    if (partial.filters) {
+      nextProfile.filters = { ...(user.profile?.filters || DEFAULT_FILTERS), ...partial.filters };
+    }
     if (partial.habits) {
       nextProfile.habits = { ...(user.profile?.habits || {}), ...partial.habits };
     }
@@ -339,6 +352,7 @@ export function AppProvider({ children }) {
           name: nextProfile.name,
           birthDate: nextProfile.birthDate,
           tolerance: nextProfile.tolerance,
+          filters: nextProfile.filters,
           habits: nextProfile.habits,
           visibility: nextProfile.visibility,
           ...(partial.photos ? { photos: nextProfile.photos } : {}),
@@ -352,7 +366,12 @@ export function AppProvider({ children }) {
 
     await persistUser(next);
 
-    if (partial.tolerance || next.profile?.tolerance) {
+    if (partial.filters || next.profile?.filters) {
+      await persistFilters({
+        ...DEFAULT_FILTERS,
+        ...(next.profile.filters || {}),
+      });
+    } else if (partial.tolerance || next.profile?.tolerance) {
       const synced = {
         ...filters,
         ...filtersFromTolerance(next.profile.tolerance || {}, next.profile.activityTypes || []),
@@ -389,6 +408,14 @@ export function AppProvider({ children }) {
                 : nextProfile.activityTypes
               : nextProfile.tolerance?.requiredSports || [],
           },
+          filters: {
+            ...DEFAULT_FILTERS,
+            ...filtersFromTolerance(
+              nextProfile.tolerance || {},
+              nextProfile.activityTypes || [],
+            ),
+            ...(nextProfile.filters || {}),
+          },
         });
         next = mapApiUserToLocal(apiUser, { isAdmin: user.isAdmin });
         nextProfile = next.profile;
@@ -403,10 +430,13 @@ export function AppProvider({ children }) {
 
     const synced = {
       ...DEFAULT_FILTERS,
+      ...(nextProfile.filters || {}),
       ...filtersFromTolerance(nextProfile.tolerance || {}, nextProfile.activityTypes || []),
-      activityTypes: nextProfile.tolerance?.sameSportOnly
-        ? nextProfile.tolerance.requiredSports || nextProfile.activityTypes || []
-        : [],
+      activityTypes: nextProfile.filters?.activityTypes?.length
+        ? nextProfile.filters.activityTypes
+        : nextProfile.tolerance?.sameSportOnly
+          ? nextProfile.tolerance.requiredSports || nextProfile.activityTypes || []
+          : nextProfile.filters?.activityTypes || [],
     };
     await persistFilters(synced);
 
@@ -425,10 +455,8 @@ export function AppProvider({ children }) {
   };
 
   const setFilters = async (nextFilters) => {
-    const merged = { ...filters, ...nextFilters };
-    await persistFilters(merged);
+    const merged = { ...DEFAULT_FILTERS, ...filters, ...nextFilters };
 
-    // Espelha sensor de tolerância no perfil
     if (user) {
       const tolerance = {
         ...(user.profile?.tolerance || {}),
@@ -438,11 +466,32 @@ export function AppProvider({ children }) {
         requiredSports: merged.requiredSports || [],
         maxDistanceKm: merged.maxDistanceKm,
       };
+
+      try {
+        const token = await getAccessToken();
+        if (token && (user.provider === "email" || user.provider === "google")) {
+          const { user: apiUser } = await updateMyProfileOnApi({ filters: merged });
+          await persistUser(mapApiUserToLocal(apiUser, { isAdmin: user.isAdmin }));
+          const fromApi = {
+            ...DEFAULT_FILTERS,
+            ...(apiUser.profile?.filters || merged),
+          };
+          await persistFilters(fromApi);
+          return fromApi;
+        }
+      } catch (e) {
+        console.log("Erro ao salvar filtros na API:", e);
+        throw e;
+      }
+
       await persistUser({
         ...user,
-        profile: { ...user.profile, tolerance },
+        profile: { ...user.profile, tolerance, filters: merged },
       });
     }
+
+    await persistFilters(merged);
+    return merged;
   };
 
   const refreshMyProfile = useCallback(async () => {
