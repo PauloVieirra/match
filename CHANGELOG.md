@@ -20,6 +20,18 @@ Versão canônica: campo `version` em [`package.json`](package.json).
 
 ---
 
+## [1.1.2] — 2026-07-24
+
+Limite de 5 MB por foto e regras de projeto.
+
+### Added
+
+- Validação local de tamanho de foto (**máx. 5 MB**) no onboarding e na tela Photos (`photoLimits.js`)
+- `.cursor/rules/profile-photos.mdc`
+- RF03 / RB02b em `PARAMETROS_DO_PROJETO.md` — 5 fotos, 5 MB cada
+
+---
+
 ## [1.1.1] — 2026-07-24
 
 Persistência dos filtros de descoberta no backend.

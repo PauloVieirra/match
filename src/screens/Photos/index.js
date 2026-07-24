@@ -17,6 +17,7 @@ import ScreenHeader from "../../Components/ui/ScreenHeader";
 import { colors } from "../../theme/colors";
 import { styles } from "./style";
 import { formatApiError } from "../../utils/api/formatApiError";
+import { MAX_PHOTO_COUNT, validatePickedPhoto } from "../../utils/photos/photoLimits";
 
 export default function PhotosScreen({ navigation }) {
   const { user, updateProfile } = useContext(AppContext);
@@ -25,8 +26,8 @@ export default function PhotosScreen({ navigation }) {
   const [saving, setSaving] = useState(false);
 
   const addPhoto = async () => {
-    if (photos.length >= 5) {
-      Alert.alert("Limite", "Máximo de 5 fotos (1 principal + 4).");
+    if (photos.length >= MAX_PHOTO_COUNT) {
+      Alert.alert("Limite", `Máximo de ${MAX_PHOTO_COUNT} fotos (1 principal + 4).`);
       return;
     }
 
@@ -52,8 +53,9 @@ export default function PhotosScreen({ navigation }) {
       if (result.canceled || !result.assets?.length) return;
 
       const asset = result.assets[0];
-      if (!asset.base64) {
-        Alert.alert("Erro", "Não foi possível ler a imagem. Tente outra foto.");
+      const validation = validatePickedPhoto(asset);
+      if (!validation.ok) {
+        Alert.alert("Foto inválida", validation.message);
         return;
       }
 

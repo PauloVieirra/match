@@ -1,0 +1,21 @@
+---
+description: Limites de fotos do perfil e integração com a API de storage
+globs: src/screens/Photos/**,src/screens/Onboarding/**,src/utils/photos/**,src/services/api/profile.js
+alwaysApply: false
+---
+
+# Fotos de perfil (app Match)
+
+## Limites
+
+- Máximo **5 fotos** (1 principal + 4)
+- Máximo **5 MB por foto**
+- Validar **antes** de adicionar à lista: `validatePickedPhoto` em `src/utils/photos/photoLimits.js`
+- Constantes: `MAX_PHOTO_BYTES`, `MAX_PHOTO_LABEL`, `MAX_PHOTO_COUNT`
+
+## Fluxo
+
+- Seleção com `expo-image-picker` (`base64: true`, `quality: 0.7`)
+- Envio via API (`completeOnboarding` / `PATCH /profile/me`) — **nunca** upload direto ao Supabase do app
+- Erros de tamanho: `PHOTO_TOO_LARGE` → mensagem via `formatApiError`
+- URLs retornadas pela API são públicas (bucket `public-bucket`); leitura no swipe não precisa de token no Storage

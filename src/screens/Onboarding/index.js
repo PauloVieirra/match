@@ -43,6 +43,7 @@ import {
 } from "../../data/lifestyleOptions";
 import { formatBirthInput, parseBirthDate, ageFrom, zodiacOf } from "../../utils/birthday";
 import { formatApiError } from "../../utils/api/formatApiError";
+import { validatePickedPhoto } from "../../utils/photos/photoLimits";
 import { colors } from "../../theme/colors";
 import { styles } from "./style";
 
@@ -272,8 +273,9 @@ export default function OnboardingScreen() {
       if (result.canceled || !result.assets?.length) return;
 
       const asset = result.assets[0];
-      if (!asset.base64) {
-        Alert.alert("Erro", "Não foi possível ler a imagem. Tente outra foto.");
+      const validation = validatePickedPhoto(asset);
+      if (!validation.ok) {
+        Alert.alert("Foto inválida", validation.message);
         return;
       }
 

@@ -27,13 +27,13 @@ export function formatApiError(error, fallback = 'Não foi possível concluir a 
     return apiDescription || 'Upload de fotos temporariamente indisponível. Tente mais tarde.';
   }
 
+  if (code === 'PHOTO_TOO_LARGE' || /exceeds .* bytes|grande demais/i.test(technical)) {
+    return apiDescription || 'A foto é grande demais. Use uma imagem de até 5 MB.';
+  }
+
   if (code === 'STORAGE_UPLOAD_FAILED' || /Supabase upload failed/i.test(technical)) {
     if (apiDescription) return apiDescription;
     return technical.replace(/^Supabase upload failed:\s*/i, 'Falha ao enviar foto: ');
-  }
-
-  if (/exceeds .* bytes|grande demais/i.test(technical)) {
-    return 'A foto é grande demais. Use uma imagem de até 5 MB.';
   }
 
   if (apiDescription && apiDescription !== 'Internal Server Error') {

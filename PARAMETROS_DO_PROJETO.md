@@ -67,7 +67,9 @@ Nome (imutável), data de nascimento, nível de treino, frequência semanal, est
 exercícios preferidos e biografia curta.
 
 RF03 – Gestão de Mídia  
-1 imagem principal e até 4 imagens secundárias.
+1 imagem principal e até 4 imagens secundárias (máximo **5 fotos** no total).  
+Cada foto: no máximo **5 MB**. Validação no app (`photoLimits.js`) e na API (`PHOTO_TOO_LARGE`).  
+Storage: bucket público `public-bucket` (URL legível no swipe); upload somente via backend autenticado.
 
 RF04 – Descoberta e Swipe  
 Visualização de perfis próximos com ações de curtir ou passar.
@@ -94,6 +96,9 @@ Usuários podem realizar até 20 curtidas por dia e no máximo 100 curtidas por 
 
 RB02 – Imutabilidade do Nome  
 O nome não pode ser alterado após a criação do perfil.
+
+RB02b – Limite de Fotos  
+Máximo 5 fotos por perfil; cada arquivo até **5 MB**. Acima disso a API retorna `PHOTO_TOO_LARGE`.
 
 RB03 – Exclusão de Conta  
 Ao excluir a conta, todos os dados são removidos em até 30 dias.
