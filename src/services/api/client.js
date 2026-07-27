@@ -1,6 +1,9 @@
 /**
  * Cliente HTTP central — envelope `{ message, statusCode, data, errors }`.
+ * Em 401 tenta refresh 1x e reenvia a request original.
  */
+import { getAccessToken, getRefreshToken, saveSession, clearSession } from '../session';
+
 const DEFAULT_TIMEOUT_MS = 20_000;
 
 function getBaseUrl() {
@@ -24,11 +27,42 @@ export class ApiError extends Error {
   }
 }
 
-/**
- * @param {string} path - ex. `/api/v1/auth/login`
- * @param {{ method?: string, body?: object, token?: string|null, timeoutMs?: number }} options
- */
-export async function apiRequest(path, options = {}) {
+let refreshPromise = null;
+
+async function refreshAccessToken() {
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    const refreshToken = await getRefreshToken();
+    if (!refreshToken) {
+      await clearSession();
+      return null;
+    }
+
+    try {
+      const response = await rawRequest('/api/v1/auth/refresh', {
+        method: 'POST',
+        body: { refreshToken },
+      });
+      const session = response?.data?.session;
+      if (!session?.accessToken) {
+        await clearSession();
+        return null;
+      }
+      await saveSession(session);
+      return session.accessToken;
+    } catch {
+      await clearSession();
+      return null;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
+}
+
+async function rawRequest(path, options = {}) {
   const { method = 'GET', body, token = null, timeoutMs = DEFAULT_TIMEOUT_MS } = options;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -80,4 +114,41 @@ export async function apiRequest(path, options = {}) {
   } finally {
     clearTimeout(timer);
   }
+}
+
+/**
+ * @param {string} path - ex. `/api/v1/auth/login`
+ * @param {{ method?: string, body?: object, token?: string|null, timeoutMs?: number, skipAuthRetry?: boolean }} options
+ */
+export async function apiRequest(path, options = {}) {
+  const { skipAuthRetry = false, ...rest } = options;
+  const isRefreshCall = path.includes('/auth/refresh');
+
+  try {
+    return await rawRequest(path, rest);
+  } catch (error) {
+    if (
+      !(error instanceof ApiError) ||
+      error.statusCode !== 401 ||
+      skipAuthRetry ||
+      isRefreshCall ||
+      !rest.token
+    ) {
+      throw error;
+    }
+
+    const nextToken = await refreshAccessToken();
+    if (!nextToken) throw error;
+
+    return rawRequest(path, { ...rest, token: nextToken });
+  }
+}
+
+/** Força renovação antecipada (boot / foco do app). */
+export async function ensureFreshSession() {
+  const access = await getAccessToken();
+  const refresh = await getRefreshToken();
+  if (!access && !refresh) return null;
+  if (access) return access;
+  return refreshAccessToken();
 }

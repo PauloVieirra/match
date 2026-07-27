@@ -1,5 +1,5 @@
 import { apiRequest } from './client';
-import { getAccessToken, saveSession, clearSession } from '../session';
+import { getAccessToken, getRefreshToken, saveSession, clearSession } from '../session';
 import { mapApiUserToLocal } from './mappers';
 
 async function unwrapAuth(response) {
@@ -32,6 +32,20 @@ export async function loginWithEmail({ email, password }) {
   const response = await apiRequest('/api/v1/auth/login', {
     method: 'POST',
     body: { email, password },
+  });
+  return unwrapAuth(response);
+}
+
+export async function refreshSessionOnApi() {
+  const refreshToken = await getRefreshToken();
+  if (!refreshToken) {
+    throw new Error('Sessão expirada. Faça login novamente.');
+  }
+
+  const response = await apiRequest('/api/v1/auth/refresh', {
+    method: 'POST',
+    body: { refreshToken },
+    skipAuthRetry: true,
   });
   return unwrapAuth(response);
 }

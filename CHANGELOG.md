@@ -1,25 +1,41 @@
 # Changelog
 
-Todas as mudanÃ§as notÃ¡veis deste repositÃ³rio sÃ£o documentadas neste arquivo.
+Todas as mudanças notáveis deste repositório são documentadas neste arquivo.
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 Versionamento: [SemVer](https://semver.org/lang/pt-BR/).
 
-VersÃ£o canÃ´nica: campo `version` em [`package.json`](package.json).
+Versão canônica: campo `version` em [`package.json`](package.json).
 
 ---
 
 ## [Unreleased]
 
+### Added
+
+- Cliente de localização da API: `src/services/api/location.js`.
+- Refresh automático de sessão no cliente HTTP (`401 -> /auth/refresh -> retry`).
+- Discover agora consome perfis por proximidade via backend (sem `mockUsers`).
+- Novo handoff para continuidade: `docs/HANDOFF-INTEGRACAO-API-E-MATCHES.md`.
+
+### Changed
+
+- Telas `Discover`, `ProfileDetail`, `Matches`, `Chat` e `MatchCelebration` removem dependência direta de dados mocados de usuário.
+- `ContextAPI` passa a usar `ensureFreshSession` no boot e simplifica fluxo local de conexão até o backend de matches ficar pronto.
+- `ProfileGrid` suporta `refreshControl` e mensagens customizadas de estado vazio.
+
+### Security
+
+- App passa a respeitar renovação de sessão sem forçar relogin frequente.
+- Fluxos de sessão alinhados ao endpoint real de refresh no backend.
+
 ### Planejado
 
-- Refresh token automÃ¡tico em 401 (`INT-C03`)
 - OAuth Google via Supabase no app
-- Discover / swipe / matches consumindo API
-- SecureStore para tokens (hoje AsyncStorage via `session.js`)
+- Endpoint real de matches/chat para substituir MVP local de conexão
+- Migração final de ranking/check-in para dados de API
 
 ---
-
 ## [1.1.2] â€” 2026-07-24
 
 Limite de 5 MB por foto e regras de projeto.

@@ -1,30 +1,67 @@
-import React from "react";
-import { FlatList, Image, Text, TextInput, TouchableOpacity, View } from "react-native";
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import { FlatList, Image, Text, TextInput, TouchableOpacity, View, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { styles } from "./style";
-import { mockChat } from "../../data/mockChat";
-import { getMockUserById } from "../../data/mockUsers";
 import { colors } from "../../theme/colors";
+import { AppContext } from "../../../contexts/ContextAPI";
+
+function resolveAvatar(person) {
+  const photo = person?.image || person?.photos?.[0];
+  if (!photo) return null;
+  if (typeof photo === "string") return { uri: photo };
+  return photo;
+}
 
 export default function ChatScreen({ navigation, route }) {
-  const target = getMockUserById(route?.params?.userId);
-  const participant = target
-    ? {
-        name: target.name,
-        avatar: target.image,
-        statusText: target.activeToday ? "Online agora" : "Visto recentemente",
+  const { getPublicProfile } = useContext(AppContext);
+  const passed = route?.params?.user;
+  const userId = route?.params?.userId;
+  const [remoteUser, setRemoteUser] = useState(null);
+  const [loading, setLoading] = useState(!passed && Boolean(userId));
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      if (passed || !userId || !getPublicProfile) {
+        setLoading(false);
+        return;
       }
-    : mockChat.participant;
-  const matchInfo = target
-    ? {
-        title: "Vocês se conectaram",
-        subtitle:
-          (target.activityTypes || []).slice(0, 2).join(" · ") ||
-          "Estilo de vida em comum",
+      setLoading(true);
+      try {
+        const profile = await getPublicProfile(userId);
+        if (!cancelled) setRemoteUser(profile);
+      } catch {
+        if (!cancelled) setRemoteUser(null);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-    : mockChat.matchInfo;
-  const { messages } = mockChat;
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [passed, userId, getPublicProfile]);
+
+  const target = passed || remoteUser;
+  const participant = useMemo(() => {
+    if (!target) {
+      return { name: "Conversa", avatar: null, statusText: "" };
+    }
+    return {
+      name: target.name || "Conexão",
+      avatar: resolveAvatar(target),
+      statusText: "Conectado",
+    };
+  }, [target]);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.screen}>
+        <ActivityIndicator color={colors.accent} style={{ marginTop: 40 }} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
@@ -37,57 +74,63 @@ export default function ChatScreen({ navigation, route }) {
           <Feather name="chevron-left" size={22} color={colors.text} />
         </TouchableOpacity>
 
-        <Image source={participant.avatar} style={styles.avatar} />
+        {participant.avatar ? (
+          <Image source={participant.avatar} style={styles.avatar} />
+        ) : (
+          <View style={[styles.avatar, { alignItems: "center", justifyContent: "center" }]}>
+            <Text style={styles.headerName}>{(participant.name || "?")[0]}</Text>
+          </View>
+        )}
 
         <View style={styles.headerText}>
           <Text style={styles.headerName}>{participant.name}</Text>
-          <View style={styles.statusRow}>
-            <View style={styles.statusDot} />
-            <Text style={styles.statusText}>{participant.statusText}</Text>
-          </View>
+          {participant.statusText ? (
+            <View style={styles.statusRow}>
+              <View style={styles.statusDot} />
+              <Text style={styles.statusText}>{participant.statusText}</Text>
+            </View>
+          ) : null}
         </View>
       </View>
 
       <View style={styles.divider} />
 
       <FlatList
-        data={messages}
+        data={[]}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => {
-          const isRight = item.side === "right";
-          return (
-            <View style={[styles.msgWrap, isRight ? styles.msgWrapRight : styles.msgWrapLeft]}>
-              <View style={[styles.bubble, isRight ? styles.bubbleRight : styles.bubbleLeft]}>
-                <Text style={[styles.msgText, isRight ? styles.msgTextRight : styles.msgTextLeft]}>
-                  {item.text}
-                </Text>
-              </View>
-              <Text style={[styles.time, isRight ? styles.timeRight : styles.timeLeft]}>{item.time}</Text>
-            </View>
-          );
-        }}
         ListHeaderComponent={
           <View style={styles.matchCard}>
-            <Text style={styles.matchTitle}>{matchInfo.title}</Text>
+            <Text style={styles.matchTitle}>Vocês se conectaram</Text>
             <View style={styles.matchSubtitleRow}>
-              <Feather name="activity" size={18} color={colors.accent} />
-              <Text style={styles.matchSubtitle}>{matchInfo.subtitle}</Text>
+              <Text style={styles.matchSubtitle}>
+                {(target?.activityTypes || []).slice(0, 2).join(" · ") ||
+                  "Estilo de vida em comum"}
+              </Text>
             </View>
           </View>
         }
+        ListEmptyComponent={
+          <View style={{ paddingHorizontal: 8, paddingTop: 8 }}>
+            <Text style={styles.time}>
+              Chat em breve. Por enquanto, combinem o treino fora do app.
+            </Text>
+          </View>
+        }
+        renderItem={() => null}
       />
 
       <View style={styles.inputBar}>
         <View style={styles.inputPill}>
           <TextInput
             style={styles.input}
-            placeholder="Mensagem..."
+            placeholder="Mensagem"
             placeholderTextColor={colors.textDim}
+            editable={false}
           />
         </View>
-        <TouchableOpacity style={styles.sendBtn} activeOpacity={0.9}>
-          <Feather name="send" size={18} color={colors.accent} />
+        <TouchableOpacity style={styles.sendBtn} activeOpacity={0.85} disabled>
+          <Feather name="send" size={18} color={colors.text} />
         </TouchableOpacity>
       </View>
     </SafeAreaView>

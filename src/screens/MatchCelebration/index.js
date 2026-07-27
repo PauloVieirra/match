@@ -4,23 +4,30 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Feather } from "@expo/vector-icons";
 import { AppContext } from "../../../contexts/ContextAPI";
-import { getMockUserById } from "../../data/mockUsers";
 import { colors } from "../../theme/colors";
 import { styles } from "./style";
+
+function resolvePhoto(person) {
+  const photo = person?.image || person?.photos?.[0];
+  if (!photo) return null;
+  if (typeof photo === "string") return { uri: photo };
+  return photo;
+}
 
 export default function MatchCelebrationScreen({ navigation, route }) {
   const { user } = useContext(AppContext);
   const target = useMemo(
-    () => getMockUserById(route?.params?.userId),
-    [route?.params?.userId]
+    () => route?.params?.user || null,
+    [route?.params?.user],
   );
   const ownPhoto = user?.profile?.photos?.[0];
-  const targetPhoto = target?.image || target?.photos?.[0];
+  const targetPhoto = resolvePhoto(target);
   const ownInitial = (user?.profile?.name || user?.name || "V")[0];
 
   const startChat = () => {
     navigation.replace("ChatThread", {
-      userId: target?.id,
+      userId: target?.id || route?.params?.userId,
+      user: target,
       isNewMatch: true,
     });
   };

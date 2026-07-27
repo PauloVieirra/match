@@ -44,7 +44,13 @@ function GridCard({ user, height, onPress }) {
   );
 }
 
-export default function ProfileGrid({ data = [], onPressProfile }) {
+export default function ProfileGrid({
+  data = [],
+  onPressProfile,
+  refreshControl,
+  emptyTitle = "Nenhum perfil compatível",
+  emptyText = "Ajuste os filtros de estilo de vida e atividades.",
+}) {
   const { width } = useWindowDimensions();
   const pad = 16;
   const colWidth = (width - pad * 2 - GAP) / 2;
@@ -63,10 +69,14 @@ export default function ProfileGrid({ data = [], onPressProfile }) {
 
   if (!data.length) {
     return (
-      <View style={styles.emptyWrap}>
-        <Text style={styles.emptyTitle}>Nenhum perfil compatível</Text>
-        <Text style={styles.emptyText}>Ajuste os filtros de estilo de vida e atividades.</Text>
-      </View>
+      <ScrollView
+        contentContainerStyle={styles.emptyWrap}
+        refreshControl={refreshControl}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.emptyTitle}>{emptyTitle}</Text>
+        <Text style={styles.emptyText}>{emptyText}</Text>
+      </ScrollView>
     );
   }
 
@@ -74,6 +84,7 @@ export default function ProfileGrid({ data = [], onPressProfile }) {
     <ScrollView
       contentContainerStyle={[styles.scroll, { paddingHorizontal: pad }]}
       showsVerticalScrollIndicator={false}
+      refreshControl={refreshControl}
     >
       <View style={styles.row}>
         <View style={[styles.column, { width: colWidth, marginRight: GAP }]}>

@@ -1,8 +1,6 @@
 import React, { createContext, useState, useEffect, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { DEFAULT_FILTERS, emptyProfile, filtersFromTolerance, mergeFiltersWithProfile } from "../src/data/lifestyleOptions";
-import { filterCompatibleProfiles } from "../src/utils/profileMatcher";
-import { mockUsers } from "../src/data/mockUsers";
+import { DEFAULT_FILTERS, emptyProfile, filtersFromTolerance } from "../src/data/lifestyleOptions";
 import {
   registerWithEmail as apiRegister,
   loginWithEmail as apiLogin,
@@ -12,6 +10,7 @@ import {
 import { fetchMyProfile, fetchPublicProfile, updateMyProfileOnApi } from "../src/services/api/profile";
 import { getAccessToken } from "../src/services/session";
 import { mapApiUserToLocal } from "../src/services/api/mappers";
+import { ensureFreshSession } from "../src/services/api/client";
 
 export const AppContext = createContext();
 
@@ -24,7 +23,7 @@ const CHECKINS_KEY = "@matchmaromba:checkins";
 
 const EMPTY_CONNECTIONS = {
   outgoing: [],
-  incoming: ["u1"],
+  incoming: [],
   matches: [],
   reciprocalCandidates: [],
   notification: null,
@@ -61,6 +60,7 @@ export function AppProvider({ children }) {
 
         if (token) {
           try {
+            await ensureFreshSession();
             const { user: apiUser } = await fetchMyProfile();
             localUser = apiUser;
             setUser(apiUser);
@@ -163,11 +163,20 @@ export function AppProvider({ children }) {
   }, []);
 
   const createMatch = useCallback(
-    (targetUserId, showNotification = false) => {
+    (targetUserId, showNotification = false, person = null) => {
       let createdMatch = null;
       updateConnections((current) => {
         const existing = current.matches.find((item) => item.userId === targetUserId);
         if (existing) {
+          if (person && !existing.person) {
+            createdMatch = { ...existing, person };
+            return {
+              ...current,
+              matches: current.matches.map((item) =>
+                item.userId === targetUserId ? createdMatch : item,
+              ),
+            };
+          }
           createdMatch = existing;
           return current;
         }
@@ -177,6 +186,7 @@ export function AppProvider({ children }) {
           userId: targetUserId,
           threadId: `thread-${targetUserId}`,
           createdAt: new Date().toISOString(),
+          person: person || null,
         };
 
         return {
@@ -201,17 +211,16 @@ export function AppProvider({ children }) {
   );
 
   /**
-   * MVP local: u1 começa com uma solicitação recebida. Nos demais perfis,
-   * a reciprocidade é simulada alguns segundos depois para demonstrar a
-   * notificação que o primeiro usuário recebe com o app aberto.
+   * MVP local de conexão (ainda sem endpoint de matches no backend).
+   * Guarda snapshot do perfil para Matches/Chat sem depender de mocks.
    */
   const sendConnectionRequest = useCallback(
-    async (targetUserId) => {
+    async (targetUserId, person = null) => {
       const existingMatch = connectionState.matches.find((item) => item.userId === targetUserId);
       if (existingMatch) return { status: "matched", match: existingMatch };
 
       if (connectionState.incoming.includes(targetUserId)) {
-        const match = createMatch(targetUserId, false);
+        const match = createMatch(targetUserId, false, person);
         return { status: "matched", match };
       }
 
@@ -220,10 +229,6 @@ export function AppProvider({ children }) {
           ...current,
           outgoing: [...current.outgoing, targetUserId],
         }));
-
-        setTimeout(() => {
-          createMatch(targetUserId, true);
-        }, 4000);
       }
 
       return { status: "pending" };
@@ -440,15 +445,9 @@ export function AppProvider({ children }) {
     };
     await persistFilters(synced);
 
-    // Pré-carrega o conteúdo inicial (grid compatível) aplicando as preferências.
-    // No backend real, este é o momento de buscar perfis, matches e notificações.
+    // Pré-carrega preferências; o Discover busca perfis reais por proximidade.
     try {
-      const resolved = mergeFiltersWithProfile(synced, nextProfile);
-      filterCompatibleProfiles(mockUsers, {
-        myLifestyles: nextProfile.lifestyles || [],
-        filters: resolved,
-      });
-      await new Promise((resolve) => setTimeout(resolve, 4200));
+      await new Promise((resolve) => setTimeout(resolve, 600));
     } finally {
       setPreparing(false);
     }

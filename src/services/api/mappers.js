@@ -44,6 +44,7 @@ export function mapSwipeProfileToLocal(swipe) {
     bio: swipe.bio,
     photos,
     image: photos[0] || null,
+    distanceKm: swipe.distanceKm ?? null,
     trainingLevel: swipe.trainingLevel,
     frequencyPerWeek: swipe.frequencyPerWeek,
     intensity: swipe.intensity,

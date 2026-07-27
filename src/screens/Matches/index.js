@@ -2,34 +2,40 @@ import React, { useContext, useMemo } from "react";
 import { View, Text, FlatList, Image, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { styles } from "./style";
-import { mockMatches } from "../../data/mockMatches";
-import { getMockUserById } from "../../data/mockUsers";
 import { AppContext } from "../../../contexts/ContextAPI";
+
+function resolveAvatar(person) {
+  const photo = person?.image || person?.photos?.[0];
+  if (!photo) return null;
+  if (typeof photo === "string") return { uri: photo };
+  return photo;
+}
 
 export default function MatchesScreen({ navigation }) {
   const { matches } = useContext(AppContext);
-  const data = useMemo(() => {
-    const live = matches
-      .map((match) => {
-        const person = getMockUserById(match.userId);
-        if (!person) return null;
-        return {
-          id: match.id,
-          userId: person.id,
-          name: person.name,
-          age: person.age,
-          avatar: person.image,
-          lastMessage: "Vocês se conectaram. Inicie uma conversa!",
-          time: "Agora",
-          unread: 0,
-          sharedLifestyle: (person.lifestyle || []).slice(0, 2),
-          activity: person.sportPreferred || person.activityTypes?.[0] || "Qualidade de vida",
-        };
-      })
-      .filter(Boolean);
-    const liveIds = new Set(live.map((item) => item.userId));
-    return [...live, ...mockMatches.filter((item) => !liveIds.has(item.userId))];
-  }, [matches]);
+  const data = useMemo(
+    () =>
+      matches
+        .map((match) => {
+          const person = match.person;
+          if (!person) return null;
+          return {
+            id: match.id,
+            userId: person.id || match.userId,
+            name: person.name,
+            age: person.age,
+            avatar: resolveAvatar(person),
+            lastMessage: "Vocês se conectaram. Inicie uma conversa!",
+            time: "Agora",
+            unread: 0,
+            sharedLifestyle: (person.lifestyle || person.lifestyles || []).slice(0, 2),
+            activity: person.sportPreferred || person.activityTypes?.[0] || "Estilo de vida",
+            person,
+          };
+        })
+        .filter(Boolean),
+    [matches],
+  );
 
   return (
     <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
@@ -40,19 +46,36 @@ export default function MatchesScreen({ navigation }) {
         data={data}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
+        ListEmptyComponent={
+          <View style={{ paddingVertical: 40, paddingHorizontal: 16 }}>
+            <Text style={styles.subtitle}>
+              Sem matches ainda. Explore o Discover e peça conexão.
+            </Text>
+          </View>
+        }
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.card}
             activeOpacity={0.85}
             onPress={() =>
-              navigation.getParent()?.navigate("ChatThread", { userId: item.userId })
+              navigation.getParent()?.navigate("ChatThread", {
+                userId: item.userId,
+                user: item.person,
+              })
             }
           >
-            <Image source={item.avatar} style={styles.avatar} />
+            {item.avatar ? (
+              <Image source={item.avatar} style={styles.avatar} />
+            ) : (
+              <View style={[styles.avatar, { alignItems: "center", justifyContent: "center" }]}>
+                <Text style={styles.name}>{(item.name || "?")[0]}</Text>
+              </View>
+            )}
             <View style={styles.body}>
               <View style={styles.row}>
                 <Text style={styles.name}>
-                  {item.name}, {item.age}
+                  {item.name}
+                  {item.age != null ? `, ${item.age}` : ""}
                 </Text>
                 <Text style={styles.time}>{item.time}</Text>
               </View>
@@ -60,19 +83,7 @@ export default function MatchesScreen({ navigation }) {
               <Text style={styles.message} numberOfLines={1}>
                 {item.lastMessage}
               </Text>
-              <View style={styles.tags}>
-                {item.sharedLifestyle.slice(0, 2).map((t) => (
-                  <View key={t} style={styles.tag}>
-                    <Text style={styles.tagText}>{t}</Text>
-                  </View>
-                ))}
-              </View>
             </View>
-            {item.unread > 0 ? (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{item.unread}</Text>
-              </View>
-            ) : null}
           </TouchableOpacity>
         )}
       />

@@ -1,16 +1,13 @@
 import React, { useContext } from "react";
 import { View, Text, ScrollView, Image, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
 import { AppContext } from "../../../contexts/ContextAPI";
 import { RANKING, MY_RANKING, ACHIEVEMENT_BADGES } from "../../data/mockRanking";
-import { mockUsers } from "../../data/mockUsers";
 import { colors } from "../../theme/colors";
 import { styles } from "./style";
 
 const badgeById = (id) => ACHIEVEMENT_BADGES.find((b) => b.id === id);
-const hasProfile = (id) => mockUsers.some((u) => u.id === id);
 
 function Trend({ trend }) {
   if (trend === "up") return <Feather name="chevron-up" size={14} color={colors.online} />;
@@ -81,7 +78,6 @@ function RankRow({ entry, position, onPress }) {
 
 export default function HomeScreen() {
   const { user } = useContext(AppContext);
-  const navigation = useNavigation();
   const profile = user?.profile || {};
   const name = (profile.name || user?.name || "Atleta").split(" ")[0];
 
@@ -89,9 +85,8 @@ export default function HomeScreen() {
   const rest = RANKING.slice(3);
   const myBadges = MY_RANKING.badges.map(badgeById).filter(Boolean);
 
-  const openProfile = (entry) => {
-    if (!hasProfile(entry.id)) return;
-    navigation.navigate("ProfileDetail", { userId: entry.id });
+  const openProfile = () => {
+    // Ranking ainda é demonstração — perfis do ranking não vêm da API.
   };
 
   return (
@@ -109,16 +104,16 @@ export default function HomeScreen() {
         </Text>
 
         <View style={styles.podium}>
-          <PodiumSlot entry={second} position={2} onPress={() => openProfile(second)} />
-          <PodiumSlot entry={first} position={1} big onPress={() => openProfile(first)} />
-          <PodiumSlot entry={third} position={3} onPress={() => openProfile(third)} />
+          <PodiumSlot entry={second} position={2} onPress={openProfile} />
+          <PodiumSlot entry={first} position={1} big onPress={openProfile} />
+          <PodiumSlot entry={third} position={3} onPress={openProfile} />
         </View>
 
         <View style={styles.listCard}>
           {rest.map((entry, i) => (
             <View key={entry.id}>
               {i > 0 ? <View style={styles.rowDivider} /> : null}
-              <RankRow entry={entry} position={i + 4} onPress={() => openProfile(entry)} />
+              <RankRow entry={entry} position={i + 4} onPress={openProfile} />
             </View>
           ))}
         </View>

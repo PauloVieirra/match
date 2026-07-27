@@ -11,7 +11,6 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { LinearGradient } from "expo-linear-gradient";
 import { Feather } from "@expo/vector-icons";
 import { AppContext } from "../../../contexts/ContextAPI";
-import { getMockUserById } from "../../data/mockUsers";
 import { buildPhotoId } from "../../services/photoLikesService";
 import { usePhotoLikes } from "../../hooks/usePhotoLikes";
 import LikablePhoto from "../../Components/ui/LikablePhoto";
@@ -26,10 +25,6 @@ function Tag({ label }) {
   );
 }
 
-function looksLikeApiId(id) {
-  return typeof id === "string" && /^[a-f\d]{24}$/i.test(id);
-}
-
 export default function ProfileDetailScreen({ navigation, route }) {
   const { user: viewer, sendConnectionRequest, connectionStatus, getPublicProfile } =
     useContext(AppContext);
@@ -41,7 +36,7 @@ export default function ProfileDetailScreen({ navigation, route }) {
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      if (passed || !userId || !looksLikeApiId(userId) || !getPublicProfile) return;
+      if (passed || !userId || !getPublicProfile) return;
       setLoadingRemote(true);
       try {
         const profile = await getPublicProfile(userId);
@@ -60,8 +55,8 @@ export default function ProfileDetailScreen({ navigation, route }) {
   }, [passed, userId, getPublicProfile]);
 
   const user = useMemo(
-    () => passed || remoteUser || getMockUserById(userId),
-    [passed, remoteUser, userId],
+    () => passed || remoteUser || null,
+    [passed, remoteUser],
   );
   const { height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -121,9 +116,9 @@ export default function ProfileDetailScreen({ navigation, route }) {
       return;
     }
 
-    const result = await sendConnectionRequest(user.id);
+    const result = await sendConnectionRequest(user.id, user);
     if (result.status === "matched") {
-      navigation.replace("MatchCelebration", { userId: user.id });
+      navigation.replace("MatchCelebration", { userId: user.id, user });
     }
   };
 
