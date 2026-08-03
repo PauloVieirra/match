@@ -10,7 +10,9 @@ import {
 import { fetchMyProfile, fetchPublicProfile, updateMyProfileOnApi } from "../src/services/api/profile";
 import { getAccessToken } from "../src/services/session";
 import { mapApiUserToLocal } from "../src/services/api/mappers";
-import { ensureFreshSession } from "../src/services/api/client";
+import { ensureFreshSession, ApiError } from "../src/services/api/client";
+import { fetchMyMatches, postSwipe } from "../src/services/api/match";
+import { disconnectChatSocket } from "../src/services/api/chatSocket";
 
 export const AppContext = createContext();
 
@@ -81,9 +83,33 @@ export function AppProvider({ children }) {
         if (!token || !localUser?.profile?.filters) {
           if (filtersJson) setFiltersState({ ...DEFAULT_FILTERS, ...JSON.parse(filtersJson) });
         }
+
+        let nextConnections = { ...EMPTY_CONNECTIONS };
         if (connectionsJson) {
-          setConnectionState({ ...EMPTY_CONNECTIONS, ...JSON.parse(connectionsJson) });
+          nextConnections = { ...EMPTY_CONNECTIONS, ...JSON.parse(connectionsJson) };
         }
+
+        if (token) {
+          try {
+            const { matches: remoteMatches } = await fetchMyMatches();
+            nextConnections = {
+              ...nextConnections,
+              matches: remoteMatches,
+              outgoing: (nextConnections.outgoing || []).filter(
+                (id) => !remoteMatches.some((m) => m.userId === id),
+              ),
+              incoming: (nextConnections.incoming || []).filter(
+                (id) => !remoteMatches.some((m) => m.userId === id),
+              ),
+            };
+          } catch (matchError) {
+            console.log("Matches remotos indisponíveis:", matchError?.message);
+          }
+        }
+
+        setConnectionState(nextConnections);
+        AsyncStorage.setItem(CONNECTIONS_KEY, JSON.stringify(nextConnections)).catch(() => {});
+
         if (checkInsJson) setCheckIns(JSON.parse(checkInsJson));
       } catch (e) {
         console.log("Erro ao carregar sessão:", e);
@@ -163,13 +189,19 @@ export function AppProvider({ children }) {
   }, []);
 
   const createMatch = useCallback(
-    (targetUserId, showNotification = false, person = null) => {
+    (targetUserId, showNotification = false, person = null, extras = {}) => {
       let createdMatch = null;
       updateConnections((current) => {
         const existing = current.matches.find((item) => item.userId === targetUserId);
         if (existing) {
           if (person && !existing.person) {
-            createdMatch = { ...existing, person };
+            createdMatch = {
+              ...existing,
+              person,
+              ...extras,
+              threadId: extras.threadId || existing.threadId,
+              roomId: extras.roomId || extras.threadId || existing.roomId,
+            };
             return {
               ...current,
               matches: current.matches.map((item) =>
@@ -182,10 +214,12 @@ export function AppProvider({ children }) {
         }
 
         createdMatch = {
-          id: `match-${targetUserId}-${Date.now()}`,
+          id: extras.id || `match-${targetUserId}-${Date.now()}`,
           userId: targetUserId,
-          threadId: `thread-${targetUserId}`,
-          createdAt: new Date().toISOString(),
+          threadId: extras.threadId || extras.roomId || `thread-${targetUserId}`,
+          roomId: extras.roomId || extras.threadId || null,
+          conversationId: extras.conversationId || extras.threadId || extras.roomId || null,
+          createdAt: extras.createdAt || new Date().toISOString(),
           person: person || null,
         };
 
@@ -210,28 +244,73 @@ export function AppProvider({ children }) {
     [updateConnections]
   );
 
+  const syncMatchesFromApi = useCallback(async () => {
+    try {
+      const { matches: remoteMatches } = await fetchMyMatches();
+      updateConnections((current) => ({
+        ...current,
+        matches: remoteMatches,
+        outgoing: current.outgoing.filter(
+          (id) => !remoteMatches.some((m) => m.userId === id),
+        ),
+        incoming: current.incoming.filter(
+          (id) => !remoteMatches.some((m) => m.userId === id),
+        ),
+      }));
+      return remoteMatches;
+    } catch (e) {
+      console.log("Matches remotos indisponíveis:", e?.message);
+      return null;
+    }
+  }, [updateConnections]);
+
   /**
-   * MVP local de conexão (ainda sem endpoint de matches no backend).
-   * Guarda snapshot do perfil para Matches/Chat sem depender de mocks.
+   * Conexão via API (`POST /swipes`). Mantém o contrato das telas:
+   * `{ status: 'matched'|'pending', match? }`.
    */
   const sendConnectionRequest = useCallback(
     async (targetUserId, person = null) => {
       const existingMatch = connectionState.matches.find((item) => item.userId === targetUserId);
       if (existingMatch) return { status: "matched", match: existingMatch };
 
-      if (connectionState.incoming.includes(targetUserId)) {
-        const match = createMatch(targetUserId, false, person);
-        return { status: "matched", match };
-      }
+      try {
+        const result = await postSwipe(targetUserId, "LIKE");
 
-      if (!connectionState.outgoing.includes(targetUserId)) {
-        updateConnections((current) => ({
-          ...current,
-          outgoing: [...current.outgoing, targetUserId],
-        }));
-      }
+        if (result.match) {
+          const match = createMatch(targetUserId, true, person, {
+            id: result.match.id,
+            threadId: result.match.conversationId || result.match.roomId,
+            roomId: result.match.roomId || result.match.conversationId,
+            conversationId: result.match.conversationId || result.match.roomId,
+          });
+          return { status: "matched", match };
+        }
 
-      return { status: "pending" };
+        if (!connectionState.outgoing.includes(targetUserId)) {
+          updateConnections((current) => ({
+            ...current,
+            outgoing: [...current.outgoing, targetUserId],
+          }));
+        }
+
+        return { status: "pending" };
+      } catch (error) {
+        if (error instanceof ApiError && error.statusCode === 409) {
+          const alreadyMatched = connectionState.matches.find(
+            (item) => item.userId === targetUserId,
+          );
+          if (alreadyMatched) return { status: "matched", match: alreadyMatched };
+
+          if (!connectionState.outgoing.includes(targetUserId)) {
+            updateConnections((current) => ({
+              ...current,
+              outgoing: [...current.outgoing, targetUserId],
+            }));
+          }
+          return { status: "pending" };
+        }
+        throw error;
+      }
     },
     [connectionState, createMatch, updateConnections]
   );
@@ -288,16 +367,19 @@ export function AppProvider({ children }) {
   const loginWithEmail = async ({ email, password }) => {
     const { user } = await apiLogin({ email, password });
     await persistUser(user);
+    await syncMatchesFromApi();
     return user;
   };
 
   const logout = async () => {
     try {
+      disconnectChatSocket();
       await logoutSession();
     } catch (e) {
       console.log("Erro ao limpar tokens:", e);
     }
     await persistUser(null);
+    updateConnections(EMPTY_CONNECTIONS);
   };
 
   /**
@@ -531,6 +613,7 @@ export function AppProvider({ children }) {
         connectionStatus,
         dismissConnectionNotification,
         registerReciprocalCandidates,
+        syncMatchesFromApi,
         checkIns,
         addCheckIn,
       }}

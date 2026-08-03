@@ -1,11 +1,11 @@
 # Changelog
 
-Todas as mudanças notáveis deste repositório são documentadas neste arquivo.
+Todas as mudanï¿½as notï¿½veis deste repositï¿½rio sï¿½o documentadas neste arquivo.
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 Versionamento: [SemVer](https://semver.org/lang/pt-BR/).
 
-Versão canônica: campo `version` em [`package.json`](package.json).
+Versï¿½o canï¿½nica: campo `version` em [`package.json`](package.json).
 
 ---
 
@@ -13,27 +13,31 @@ Versão canônica: campo `version` em [`package.json`](package.json).
 
 ### Added
 
-- Cliente de localização da API: `src/services/api/location.js`.
-- Refresh automático de sessão no cliente HTTP (`401 -> /auth/refresh -> retry`).
+- Cliente de localizaï¿½ï¿½o da API: `src/services/api/location.js`.
+- Refresh automï¿½tico de sessï¿½o no cliente HTTP (`401 -> /auth/refresh -> retry`).
 - Discover agora consome perfis por proximidade via backend (sem `mockUsers`).
 - Novo handoff para continuidade: `docs/HANDOFF-INTEGRACAO-API-E-MATCHES.md`.
 
+### Fixed
+
+- Tab bar respeita o inset inferior do Android (`edgeToEdgeEnabled`): botÃµes deixam de ficar sob a navegaÃ§Ã£o do sistema no APK.
+
 ### Changed
 
-- Telas `Discover`, `ProfileDetail`, `Matches`, `Chat` e `MatchCelebration` removem dependência direta de dados mocados de usuário.
-- `ContextAPI` passa a usar `ensureFreshSession` no boot e simplifica fluxo local de conexão até o backend de matches ficar pronto.
+- Telas `Discover`, `ProfileDetail`, `Matches`, `Chat` e `MatchCelebration` removem dependï¿½ncia direta de dados mocados de usuï¿½rio.
+- `ContextAPI` passa a usar `ensureFreshSession` no boot e simplifica fluxo local de conexï¿½o atï¿½ o backend de matches ficar pronto.
 - `ProfileGrid` suporta `refreshControl` e mensagens customizadas de estado vazio.
 
 ### Security
 
-- App passa a respeitar renovação de sessão sem forçar relogin frequente.
-- Fluxos de sessão alinhados ao endpoint real de refresh no backend.
+- App passa a respeitar renovaï¿½ï¿½o de sessï¿½o sem forï¿½ar relogin frequente.
+- Fluxos de sessï¿½o alinhados ao endpoint real de refresh no backend.
 
 ### Planejado
 
 - OAuth Google via Supabase no app
-- Endpoint real de matches/chat para substituir MVP local de conexão
-- Migração final de ranking/check-in para dados de API
+- Endpoint real de matches/chat para substituir MVP local de conexï¿½o
+- Migraï¿½ï¿½o final de ranking/check-in para dados de API
 
 ---
 ## [1.1.2] â€” 2026-07-24

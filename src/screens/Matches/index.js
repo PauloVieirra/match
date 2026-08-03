@@ -22,6 +22,7 @@ export default function MatchesScreen({ navigation }) {
           return {
             id: match.id,
             userId: person.id || match.userId,
+            roomId: match.threadId || match.roomId || match.conversationId || null,
             name: person.name,
             age: person.age,
             avatar: resolveAvatar(person),
@@ -61,6 +62,9 @@ export default function MatchesScreen({ navigation }) {
               navigation.getParent()?.navigate("ChatThread", {
                 userId: item.userId,
                 user: item.person,
+                roomId: item.roomId,
+                threadId: item.roomId,
+                conversationId: item.roomId,
               })
             }
           >

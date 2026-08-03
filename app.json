@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "matchmaromba",
+    "name": "Match Maromba",
     "slug": "matchmaromba",
-    "version": "1.0.0",
+    "version": "1.1.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -10,17 +10,27 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0B0D0F"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.matchmaromba.app"
     },
     "android": {
+      "package": "com.matchmaromba.app",
+      "versionCode": 3,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#0B0D0F"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "usesCleartextTraffic": true,
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.INTERNET",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -29,7 +39,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Usamos sua localização apenas para listar locais de treino próximos e validar o check-in. Ela não é compartilhada com outras pessoas."
+          "locationWhenInUsePermission": "Usamos sua localização para encontrar pessoas e locais de treino próximos. Ela não é compartilhada publicamente."
         }
       ],
       [
@@ -39,6 +49,12 @@
         }
       ],
       "expo-secure-store"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "9d9e0707-f77c-471b-933f-1adf29aaf1f7"
+      }
+    },
+    "owner": "vieirajjr"
   }
 }

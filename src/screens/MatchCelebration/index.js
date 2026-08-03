@@ -25,10 +25,18 @@ export default function MatchCelebrationScreen({ navigation, route }) {
   const ownInitial = (user?.profile?.name || user?.name || "V")[0];
 
   const startChat = () => {
+    const roomId =
+      route?.params?.roomId ||
+      route?.params?.threadId ||
+      route?.params?.conversationId ||
+      null;
     navigation.replace("ChatThread", {
       userId: target?.id || route?.params?.userId,
       user: target,
       isNewMatch: true,
+      roomId,
+      threadId: roomId,
+      conversationId: roomId,
     });
   };
 

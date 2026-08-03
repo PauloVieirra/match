@@ -26,7 +26,7 @@ function Tag({ label }) {
 }
 
 export default function ProfileDetailScreen({ navigation, route }) {
-  const { user: viewer, sendConnectionRequest, connectionStatus, getPublicProfile } =
+  const { user: viewer, sendConnectionRequest, connectionStatus, getPublicProfile, matches } =
     useContext(AppContext);
   const userId = route?.params?.userId;
   const passed = route?.params?.user;
@@ -112,13 +112,27 @@ export default function ProfileDetailScreen({ navigation, route }) {
 
   const onConnect = async () => {
     if (status === "matched") {
-      navigation.navigate("ChatThread", { userId: user.id });
+      const existing = matches?.find?.(
+        (m) => m.userId === user.id || m.person?.id === user.id,
+      );
+      navigation.navigate("ChatThread", {
+        userId: user.id,
+        user,
+        roomId: existing?.threadId || existing?.roomId || existing?.conversationId,
+        threadId: existing?.threadId || existing?.roomId,
+        conversationId: existing?.conversationId || existing?.roomId,
+      });
       return;
     }
 
     const result = await sendConnectionRequest(user.id, user);
     if (result.status === "matched") {
-      navigation.replace("MatchCelebration", { userId: user.id, user });
+      navigation.replace("MatchCelebration", {
+        userId: user.id,
+        user,
+        roomId: result.match?.threadId || result.match?.roomId || result.match?.conversationId,
+        matchId: result.match?.id,
+      });
     }
   };
 

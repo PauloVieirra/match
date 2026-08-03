@@ -64,3 +64,48 @@ export function mapSwipeProfileToLocal(swipe) {
     sportPreferred: (swipe.activityTypes && swipe.activityTypes[0]) || '',
   };
 }
+
+/**
+ * Item de `GET /matches` → shape do ContextAPI / tela Matches.
+ */
+export function mapMatchItemToLocal(item) {
+  if (!item) return null;
+
+  const person = mapSwipeProfileToLocal(item.person || item.user);
+  if (!person) return null;
+
+  const matchId = item.id || item.matchId;
+  const threadId = item.threadId || item.conversationId || item.roomId;
+
+  return {
+    id: matchId,
+    userId: item.userId || person.id,
+    threadId,
+    roomId: threadId,
+    conversationId: threadId,
+    createdAt: item.createdAt || new Date().toISOString(),
+    person,
+  };
+}
+
+/**
+ * Mensagem da API/WS → shape leve para listas futuras.
+ */
+export function mapChatMessageToLocal(message, currentUserId) {
+  if (!message) return null;
+  const senderId = message.senderId;
+  return {
+    id: message.id,
+    roomId: message.roomId,
+    senderId,
+    text: message.content,
+    time: message.createdAt
+      ? new Date(message.createdAt).toLocaleTimeString('pt-BR', {
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      : '',
+    createdAt: message.createdAt,
+    side: senderId === currentUserId ? 'right' : 'left',
+  };
+}
