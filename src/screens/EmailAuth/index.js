@@ -5,16 +5,16 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
 import ScreenHeader from "../../Components/ui/ScreenHeader";
 import PrimaryButton from "../../Components/ui/PrimaryButton";
 import { AppContext } from "../../../contexts/ContextAPI";
-import { ApiError } from "../../services/api/client";
+import { formatApiError } from "../../utils/api/formatApiError";
 import { loginSchema, registerSchema } from "../../utils/validation/authSchemas";
 import { styles } from "./style";
 
@@ -48,14 +48,15 @@ export default function EmailAuthScreen({ navigation, route }) {
         }
         // Routes.js troca de stack conforme user / onboardingCompleted
       } catch (err) {
-        const message =
-          err instanceof ApiError
-            ? err.errors?.length
-              ? err.errors.join("\n")
-              : err.message
-            : err?.message || "Falha na autenticação";
+        const message = formatApiError(
+          err,
+          isRegister ? "Não foi possível criar a conta." : "Falha na autenticação.",
+        );
         helpers.setStatus(message);
-        Alert.alert(isRegister ? "Cadastro" : "Login", message);
+        toast.error(isRegister ? "Cadastro" : "Login", {
+          description: message,
+          duration: 4000,
+        });
       }
     },
   });

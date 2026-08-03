@@ -13,6 +13,8 @@ Vers�o can�nica: campo `version` em [`package.json`](package.json).
 
 ### Added
 
+- Toasts com `sonner-native` (tema escuro Match) no root do app; login/cadastro por e-mail usam toast em vez de `Alert` nativo.
+- `formatApiError` traduz mensagens de auth da API (ex.: `Invalid credentials` → `E-mail ou senha incorretos.`).
 - Cliente de localiza��o da API: `src/services/api/location.js`.
 - Refresh autom�tico de sess�o no cliente HTTP (`401 -> /auth/refresh -> retry`).
 - Discover agora consome perfis por proximidade via backend (sem `mockUsers`).

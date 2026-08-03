@@ -10,7 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { styles } from "./style";
 import { colors } from "../../theme/colors";
@@ -28,6 +28,9 @@ import {
   subscribeChatSocket,
   isChatSocketOpen,
 } from "../../services/api/chatSocket";
+
+/** Padding mínimo da barra de input quando não há inset do sistema. */
+const INPUT_BAR_PADDING_BOTTOM = 12;
 
 function resolveAvatar(person) {
   const photo = person?.image || person?.photos?.[0];
@@ -50,6 +53,7 @@ function mergeMessages(current, incoming) {
 }
 
 export default function ChatScreen({ navigation, route }) {
+  const insets = useSafeAreaInsets();
   const { user, getPublicProfile, matches } = useContext(AppContext);
   const passed = route?.params?.user;
   const userId = route?.params?.userId;
@@ -352,7 +356,14 @@ export default function ChatScreen({ navigation, route }) {
           </Text>
         ) : null}
 
-        <View style={styles.inputBar}>
+        <View
+          style={[
+            styles.inputBar,
+            // edgeToEdge no Android: sem inset a nav do sistema cobre o input
+            // (mesmo problema da tab bar no 1º build).
+            { paddingBottom: Math.max(insets.bottom, INPUT_BAR_PADDING_BOTTOM) },
+          ]}
+        >
           <View style={styles.inputPill}>
             <TextInput
               style={styles.input}
