@@ -2,8 +2,16 @@
  * Cliente WebSocket do chat.
  * Preferência: EXPO_PUBLIC_WS_URL (wss://host/ws).
  * Fallback: deriva de EXPO_PUBLIC_API_URL (https→wss, http→ws) + /ws.
+ *
+ * Reconecta com backoff, reentra nas salas ativas e reenvia mensagens
+ * que ficaram na fila (queda de rede / app em background).
  */
+import { AppState } from 'react-native';
 import { getAccessToken } from '../session';
+import { ensureFreshSession } from './client';
+
+const RECONNECT_BASE_MS = 1000;
+const RECONNECT_MAX_MS = 30_000;
 
 function getWsUrl() {
   const explicit = process.env.EXPO_PUBLIC_WS_URL?.trim();
@@ -27,6 +35,10 @@ let listeners = new Set();
 let reconnectTimer = null;
 let intentionalClose = false;
 let openWaiters = [];
+let reconnectAttempt = 0;
+let appStateBound = false;
+const joinedRooms = new Set();
+const pendingMessages = [];
 
 function flushOpenWaiters(error = null) {
   const waiters = openWaiters;
@@ -55,11 +67,63 @@ function parseIncoming(raw) {
   }
 }
 
+function clearReconnectTimer() {
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
+  }
+}
+
+function scheduleReconnect() {
+  if (intentionalClose || reconnectTimer) return;
+  const delay = Math.min(
+    RECONNECT_MAX_MS,
+    RECONNECT_BASE_MS * 2 ** reconnectAttempt,
+  );
+  reconnectAttempt += 1;
+  reconnectTimer = setTimeout(() => {
+    reconnectTimer = null;
+    connectChatSocket().catch(() => {});
+  }, delay);
+}
+
+function rejoinActiveRooms() {
+  if (!isChatSocketOpen()) return;
+  for (const roomId of joinedRooms) {
+    socket.send(JSON.stringify({ type: 'join_room', roomId }));
+  }
+}
+
+function flushPendingMessages() {
+  if (!isChatSocketOpen() || pendingMessages.length === 0) return;
+  const queued = pendingMessages.splice(0, pendingMessages.length);
+  for (const item of queued) {
+    socket.send(
+      JSON.stringify({
+        type: 'send_message',
+        roomId: item.roomId,
+        content: item.content,
+      }),
+    );
+  }
+}
+
+function bindAppState() {
+  if (appStateBound) return;
+  appStateBound = true;
+  AppState.addEventListener('change', (state) => {
+    if (state !== 'active' || intentionalClose) return;
+    reconnectAttempt = 0;
+    connectChatSocket().catch(() => {});
+  });
+}
+
 /**
  * Abre (ou reutiliza) a conexão WebSocket autenticada.
  * Resolve quando o socket estiver OPEN.
  */
 export async function connectChatSocket() {
+  bindAppState();
   intentionalClose = false;
 
   if (socket && socket.readyState === WebSocket.OPEN) {
@@ -72,8 +136,9 @@ export async function connectChatSocket() {
     });
   }
 
-  const token = await getAccessToken();
+  const token = (await ensureFreshSession()) || (await getAccessToken());
   if (!token) {
+    scheduleReconnect();
     throw new Error('Sessão expirada. Faça login novamente.');
   }
 
@@ -86,10 +151,15 @@ export async function connectChatSocket() {
       socket = new WebSocket(wsUrl);
     } catch (error) {
       flushOpenWaiters(error);
+      scheduleReconnect();
       return;
     }
 
     socket.onopen = () => {
+      reconnectAttempt = 0;
+      clearReconnectTimer();
+      rejoinActiveRooms();
+      flushPendingMessages();
       emit('open');
       flushOpenWaiters();
     };
@@ -112,10 +182,7 @@ export async function connectChatSocket() {
       }
       socket = null;
       if (!intentionalClose) {
-        if (reconnectTimer) clearTimeout(reconnectTimer);
-        reconnectTimer = setTimeout(() => {
-          connectChatSocket().catch(() => {});
-        }, 2500);
+        scheduleReconnect();
       }
     };
   });
@@ -123,10 +190,9 @@ export async function connectChatSocket() {
 
 export function disconnectChatSocket() {
   intentionalClose = true;
-  if (reconnectTimer) {
-    clearTimeout(reconnectTimer);
-    reconnectTimer = null;
-  }
+  clearReconnectTimer();
+  joinedRooms.clear();
+  pendingMessages.length = 0;
   if (socket) {
     socket.close();
     socket = null;
@@ -145,20 +211,41 @@ function send(payload) {
   socket.send(JSON.stringify(payload));
 }
 
-/** Entra na sala e recebe `messages_history`. */
+/** Entra na sala e recebe `messages_history`. Lembra a sala para rejoin. */
 export function joinChatRoom(roomId) {
+  if (!roomId) return;
+  joinedRooms.add(roomId);
+  if (!isChatSocketOpen()) {
+    connectChatSocket().catch(() => {});
+    return;
+  }
   send({ type: 'join_room', roomId });
 }
 
 export function leaveChatRoom(roomId) {
-  send({ type: 'leave_room', roomId });
+  if (!roomId) return;
+  joinedRooms.delete(roomId);
+  if (!isChatSocketOpen()) return;
+  try {
+    send({ type: 'leave_room', roomId });
+  } catch {
+    // ignore
+  }
 }
 
 export function sendChatMessage(roomId, content) {
-  send({ type: 'send_message', roomId, content });
+  if (!roomId || !content) return 'ignored';
+  if (isChatSocketOpen()) {
+    send({ type: 'send_message', roomId, content });
+    return 'sent';
+  }
+  pendingMessages.push({ roomId, content });
+  connectChatSocket().catch(() => {});
+  return 'queued';
 }
 
 export function requestChatHistory(roomId, limit = 50) {
+  if (!isChatSocketOpen()) return;
   send({ type: 'get_history', roomId, limit });
 }
 

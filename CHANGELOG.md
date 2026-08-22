@@ -15,6 +15,7 @@ Vers�o can�nica: campo `version` em [`package.json`](package.json).
 
 - Toasts com `sonner-native` (tema escuro Match) no root do app; login/cadastro por e-mail usam toast em vez de `Alert` nativo.
 - `formatApiError` traduz mensagens de auth da API (ex.: `Invalid credentials` → `E-mail ou senha incorretos.`).
+- Check-in usa mapa WMS gratuito do IBGE (`CCAR:bc250_2025` via Leaflet/WebView), sem Google Maps API key.
 - Cliente de localiza��o da API: `src/services/api/location.js`.
 - Refresh autom�tico de sess�o no cliente HTTP (`401 -> /auth/refresh -> retry`).
 - Discover agora consome perfis por proximidade via backend (sem `mockUsers`).
@@ -22,6 +23,8 @@ Vers�o can�nica: campo `version` em [`package.json`](package.json).
 
 ### Fixed
 
+- Check-in no APK não fecha mais: removido `react-native-maps`/Google Maps da tela (faltava `com.google.android.geo.API_KEY`); mapa agora é IBGE WMS.
+- Mapa Check-in: removido filtro CSS que deixava tiles pretos no Android WebView; base Carto + overlay IBGE BC250.
 - Tab bar respeita o inset inferior do Android (`edgeToEdgeEnabled`): botões deixam de ficar sob a navegação do sistema no APK.
 
 ### Changed
@@ -38,8 +41,30 @@ Vers�o can�nica: campo `version` em [`package.json`](package.json).
 ### Planejado
 
 - OAuth Google via Supabase no app
-- Endpoint real de matches/chat para substituir MVP local de conex�o
+- Tela de busca por nome (`GET /profile/search`)
+- Toggle perfil oculto e UI da quota 5/dia
 - Migra��o final de ranking/check-in para dados de API
+
+---
+
+## [1.1.6] — 2026-08-22
+
+Chat mais estável no Android e status Online real.
+
+### Added
+
+- Reconnect do WebSocket com backoff, rejoin da sala e fila de mensagens pendentes.
+- Presença: socket abre no login; “Online” no header do chat só se a outra pessoa estiver com o app conectado.
+- Envio persiste via REST; se estiver offline, a bolha fica na tela e reenvia ao reconectar.
+
+### Fixed
+
+- Queda de rede não deixava o chat “Online” de mentira (era o próprio socket).
+- ProfileDetail não mostra mais “Ativa hoje / Visto recentemente” mockado.
+
+### Changed
+
+- App 1.1.6 / versionCode 7 (preview EAS).
 
 ---
 ## [1.1.2] — 2026-07-24

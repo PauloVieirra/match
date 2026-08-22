@@ -12,7 +12,7 @@ import { getAccessToken } from "../src/services/session";
 import { mapApiUserToLocal } from "../src/services/api/mappers";
 import { ensureFreshSession, ApiError } from "../src/services/api/client";
 import { fetchMyMatches, postSwipe } from "../src/services/api/match";
-import { disconnectChatSocket } from "../src/services/api/chatSocket";
+import { connectChatSocket, disconnectChatSocket } from "../src/services/api/chatSocket";
 
 export const AppContext = createContext();
 
@@ -119,6 +119,24 @@ export function AppProvider({ children }) {
     };
     load();
   }, []);
+
+  useEffect(() => {
+    if (!user?.id) {
+      disconnectChatSocket();
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const token = await getAccessToken();
+      if (!token || cancelled) return;
+      connectChatSocket().catch((error) => {
+        console.log("Presença WS indisponível:", error?.message);
+      });
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
 
   /** Registra um treino no local. A localização exata do usuário não é armazenada. */
   const addCheckIn = useCallback((venue) => {

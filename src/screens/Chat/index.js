@@ -89,7 +89,7 @@ export default function ChatScreen({ navigation, route }) {
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [connectionLabel, setConnectionLabel] = useState("Conectando…");
+  const [peerOnline, setPeerOnline] = useState(false);
   const [errorText, setErrorText] = useState("");
   const listRef = useRef(null);
   const roomIdRef = useRef(roomId);
@@ -100,21 +100,31 @@ export default function ChatScreen({ navigation, route }) {
   const target = passed || matchFromContext?.person || remoteUser;
   const participant = useMemo(() => {
     if (!target) {
-      return { name: "Conversa", avatar: null, statusText: connectionLabel };
+      return { name: "Conversa", avatar: null };
     }
     return {
       name: target.name || "Conexão",
       avatar: resolveAvatar(target),
-      statusText: connectionLabel,
     };
-  }, [target, connectionLabel]);
+  }, [target]);
 
   const applyRemoteMessages = useCallback(
     (rawList) => {
       const mapped = (rawList || [])
         .map((msg) => mapChatMessageToLocal(msg, currentUserId))
         .filter(Boolean);
-      setMessages((current) => mergeMessages(current, mapped));
+      setMessages((current) => {
+        const merged = mergeMessages(current, mapped);
+        const confirmedTexts = new Set(
+          merged
+            .filter((msg) => !String(msg.id).startsWith("pending-"))
+            .map((msg) => msg.text),
+        );
+        return merged.filter((msg) => {
+          if (!String(msg.id).startsWith("pending-")) return true;
+          return !confirmedTexts.has(msg.text);
+        });
+      });
     },
     [currentUserId],
   );
@@ -147,11 +157,13 @@ export default function ChatScreen({ navigation, route }) {
       setErrorText("");
 
       if (!roomId) {
-        setConnectionLabel("Sem sala");
+        setPeerOnline(false);
         setErrorText("Sala de chat não encontrada para este match.");
         setLoading(false);
         return;
       }
+
+      setPeerOnline(false);
 
       try {
         const { messages: history } = await fetchRoomMessages(roomId, { limit: 50 });
@@ -169,13 +181,17 @@ export default function ChatScreen({ navigation, route }) {
         unsubscribe = subscribeChatSocket((event, payload) => {
           const activeRoom = roomIdRef.current;
           if (event === "open" || event === "connected") {
-            setConnectionLabel("Online");
+            if (activeRoom) {
+              joinChatRoom(activeRoom);
+              fetchRoomMessages(activeRoom, { limit: 50 })
+                .then(({ messages: history }) => applyRemoteMessages(history))
+                .catch(() => {});
+            }
           }
-          if (event === "close") {
-            setConnectionLabel("Reconectando…");
-          }
-          if (event === "joined_room" && payload?.roomId === activeRoom) {
-            setConnectionLabel("Online");
+          if (event === "peer_presence" && payload?.roomId === activeRoom) {
+            if (payload.userId && payload.userId !== currentUserId) {
+              setPeerOnline(Boolean(payload.online));
+            }
           }
           if (event === "messages_history" && payload?.roomId === activeRoom) {
             applyRemoteMessages(payload.messages || []);
@@ -190,13 +206,9 @@ export default function ChatScreen({ navigation, route }) {
 
         if (isChatSocketOpen()) {
           joinChatRoom(roomId);
-          setConnectionLabel("Online");
-        } else {
-          setConnectionLabel("Conectando…");
         }
       } catch (e) {
         if (!cancelled) {
-          setConnectionLabel("Offline");
           setErrorText(e?.message || "WebSocket indisponível — usando REST");
         }
       } finally {
@@ -217,7 +229,7 @@ export default function ChatScreen({ navigation, route }) {
         }
       }
     };
-  }, [roomId, applyRemoteMessages]);
+  }, [roomId, applyRemoteMessages, currentUserId]);
 
   useEffect(() => {
     if (!messages.length) return;
@@ -235,21 +247,30 @@ export default function ChatScreen({ navigation, route }) {
     setDraft("");
     setErrorText("");
 
+    const pendingId = `pending-${Date.now()}`;
+    applyRemoteMessages([
+      {
+        id: pendingId,
+        roomId,
+        senderId: currentUserId,
+        content,
+        createdAt: new Date().toISOString(),
+      },
+    ]);
+
     try {
-      if (isChatSocketOpen()) {
-        sendChatMessage(roomId, content);
-      } else {
-        const { message } = await sendRoomMessageHttp(roomId, content);
-        if (message) applyRemoteMessages([message]);
+      const { message } = await sendRoomMessageHttp(roomId, content);
+      if (message) {
+        setMessages((current) =>
+          mergeMessages(
+            current.filter((item) => item.id !== pendingId),
+            [mapChatMessageToLocal(message, currentUserId)].filter(Boolean),
+          ),
+        );
       }
     } catch (e) {
-      try {
-        const { message } = await sendRoomMessageHttp(roomId, content);
-        if (message) applyRemoteMessages([message]);
-      } catch (restError) {
-        setDraft(content);
-        setErrorText(restError?.message || e?.message || "Falha ao enviar");
-      }
+      sendChatMessage(roomId, content);
+      setErrorText("Sem conexão. A mensagem será enviada ao reconectar.");
     } finally {
       setSending(false);
     }
@@ -307,15 +328,10 @@ export default function ChatScreen({ navigation, route }) {
 
           <View style={styles.headerText}>
             <Text style={styles.headerName}>{participant.name}</Text>
-            {participant.statusText ? (
+            {peerOnline ? (
               <View style={styles.statusRow}>
-                <View
-                  style={[
-                    styles.statusDot,
-                    connectionLabel !== "Online" && { backgroundColor: colors.textDim },
-                  ]}
-                />
-                <Text style={styles.statusText}>{participant.statusText}</Text>
+                <View style={styles.statusDot} />
+                <Text style={styles.statusText}>Online</Text>
               </View>
             ) : null}
           </View>

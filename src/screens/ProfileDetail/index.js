@@ -168,13 +168,13 @@ export default function ProfileDetailScreen({ navigation, route }) {
               <Text style={styles.subtitle}>{subtitleParts.join(" · ")}</Text>
             ) : null}
 
-            <View style={styles.statusRow}>
-              <View style={[styles.statusDot, !user.activeToday && styles.statusDotOff]} />
-              <Text style={[styles.statusText, !user.activeToday && styles.statusTextOff]}>
-                {user.activeToday ? "Ativa hoje" : "Visto recentemente"}
-                {user.distanceKm != null ? ` · ${user.distanceKm} km` : ""}
-              </Text>
-            </View>
+            {user.distanceKm != null ? (
+              <View style={styles.statusRow}>
+                <Text style={[styles.statusText, styles.statusTextOff]}>
+                  {user.distanceKm} km
+                </Text>
+              </View>
+            ) : null}
 
             {user.bio ? (
               <Text style={styles.bioPreview} numberOfLines={2}>
