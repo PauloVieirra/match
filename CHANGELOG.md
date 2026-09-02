@@ -1,49 +1,70 @@
 # Changelog
 
-Todas as mudan�as not�veis deste reposit�rio s�o documentadas neste arquivo.
+Todas as mudanças notáveis deste repositório são documentadas neste arquivo.
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 Versionamento: [SemVer](https://semver.org/lang/pt-BR/).
 
-Vers�o can�nica: campo `version` em [`package.json`](package.json).
+Versão canônica: campo `version` em [`package.json`](package.json).
 
 ---
 
 ## [Unreleased]
 
-### Added
-
-- Toasts com `sonner-native` (tema escuro Match) no root do app; login/cadastro por e-mail usam toast em vez de `Alert` nativo.
-- `formatApiError` traduz mensagens de auth da API (ex.: `Invalid credentials` → `E-mail ou senha incorretos.`).
-- Check-in usa mapa WMS gratuito do IBGE (`CCAR:bc250_2025` via Leaflet/WebView), sem Google Maps API key.
-- Cliente de localiza��o da API: `src/services/api/location.js`.
-- Refresh autom�tico de sess�o no cliente HTTP (`401 -> /auth/refresh -> retry`).
-- Discover agora consome perfis por proximidade via backend (sem `mockUsers`).
-- Novo handoff para continuidade: `docs/HANDOFF-INTEGRACAO-API-E-MATCHES.md`.
-
-### Fixed
-
-- Check-in no APK não fecha mais: removido `react-native-maps`/Google Maps da tela (faltava `com.google.android.geo.API_KEY`); mapa agora é IBGE WMS.
-- Mapa Check-in: removido filtro CSS que deixava tiles pretos no Android WebView; base Carto + overlay IBGE BC250.
-- Tab bar respeita o inset inferior do Android (`edgeToEdgeEnabled`): botões deixam de ficar sob a navegação do sistema no APK.
-
-### Changed
-
-- Telas `Discover`, `ProfileDetail`, `Matches`, `Chat` e `MatchCelebration` removem depend�ncia direta de dados mocados de usu�rio.
-- `ContextAPI` passa a usar `ensureFreshSession` no boot e simplifica fluxo local de conex�o at� o backend de matches ficar pronto.
-- `ProfileGrid` suporta `refreshControl` e mensagens customizadas de estado vazio.
-
-### Security
-
-- App passa a respeitar renova��o de sess�o sem for�ar relogin frequente.
-- Fluxos de sess�o alinhados ao endpoint real de refresh no backend.
-
 ### Planejado
 
 - OAuth Google via Supabase no app
-- Tela de busca por nome (`GET /profile/search`)
 - Toggle perfil oculto e UI da quota 5/dia
-- Migra��o final de ranking/check-in para dados de API
+- Migração final de ranking/check-in para dados de API
+
+---
+
+## [1.2.0] — 2026-09-01
+
+Identidade visual **TreinaComigo**, busca por nome no Discover e consolidação de melhorias pós-integração.
+
+### Added
+
+- Busca por nome no Discover (`GET /profile/search`) com debounce, loading e estados vazio/erro.
+- `searchProfilesByName` em `src/services/api/profile.js`.
+- Componente `IbgeMap` (mapa IBGE WMS via WebView/Leaflet) no Check-in, sem Google Maps API key.
+- Coordenadas fallback no EAS preview (`EXPO_PUBLIC_FALLBACK_LATITUDE` / `EXPO_PUBLIC_FALLBACK_LONGITUDE`).
+- Paleta TreinaComigo em `src/theme/colors.js` (rosa `#FC2B5E`, fundo `#FFF8F9`, texto `#666666`).
+- Toasts com `sonner-native` no root do app; login/cadastro por e-mail usam toast em vez de `Alert` nativo.
+- `formatApiError` traduz mensagens de auth da API (ex.: `Invalid credentials` → `E-mail ou senha incorretos.`).
+- Cliente de localização da API: `src/services/api/location.js`.
+- Refresh automático de sessão no cliente HTTP (`401 → /auth/refresh → retry`).
+- Discover consome perfis por proximidade via backend (sem `mockUsers`).
+- Handoff de continuidade: `docs/HANDOFF-INTEGRACAO-API-E-MATCHES.md`.
+
+### Changed
+
+- Rebrand do app para **TreinaComigo** (`app.json`, ícones, splash, SignIn, Preparing).
+- Tema claro global (`userInterfaceStyle: light`, `AppBackground`, toasts).
+- Substituição em massa de verdes hardcoded por tokens do tema em telas e componentes.
+- `resolveCoordinates` com fallback configurável por variáveis de ambiente.
+- Telas `Discover`, `ProfileDetail`, `Matches`, `Chat` e `MatchCelebration` removem dependência direta de dados mockados de usuário.
+- `ContextAPI` usa `ensureFreshSession` no boot.
+- `ProfileGrid` suporta `refreshControl` e mensagens customizadas de estado vazio.
+
+### Fixed
+
+- `MatchCelebration`: JSX `color={colors.primary}` corrigido.
+- `Routes.js`: import de `colors` faltando (`ReferenceError` no boot).
+- `ProfileDetail`: gradiente escuro no hero substituído por overlay claro; bio preview com `textMuted`.
+- Barra de busca no Discover: texto legível no Android (`#333333`).
+- Check-in no APK não fecha mais: removido `react-native-maps`/Google Maps (faltava `com.google.android.geo.API_KEY`).
+- Mapa Check-in: removido filtro CSS que deixava tiles pretos no Android WebView.
+- Tab bar respeita o inset inferior do Android (`edgeToEdgeEnabled`).
+
+### Security
+
+- App respeita renovação de sessão sem forçar relogin frequente.
+- Fluxos de sessão alinhados ao endpoint real de refresh no backend.
+
+### Notes
+
+- App **1.2.0** / `versionCode` **8** (preview EAS).
 
 ---
 
@@ -67,6 +88,7 @@ Chat mais estável no Android e status Online real.
 - App 1.1.6 / versionCode 7 (preview EAS).
 
 ---
+
 ## [1.1.2] — 2026-07-24
 
 Limite de 5 MB por foto e regras de projeto.
