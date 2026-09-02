@@ -2,6 +2,7 @@ import React from "react";
 import {
   View,
   Text,
+  Image,
   ImageBackground,
   TouchableOpacity,
   StatusBar,
@@ -23,17 +24,27 @@ export default function SignInScreen({ navigation }) {
         style={styles.heroImage}
       >
         <LinearGradient
-          colors={["rgba(11,13,15,0.15)", "rgba(11,13,15,0.55)", "rgba(11,13,15,0.92)"]}
-          locations={[0, 0.55, 1]}
+          colors={["rgba(255,248,249,0.05)", "rgba(255,248,249,0.45)", "rgba(255,248,249,0.94)"]}
+          locations={[0, 0.5, 1]}
           style={styles.heroOverlay}
         />
 
         <SafeAreaView style={styles.safe} edges={["top", "left", "right", "bottom"]}>
+          <View style={styles.topBrand}>
+            <Image
+              source={require("../../../assets/icon.png")}
+              style={styles.logo}
+              resizeMode="contain"
+              accessibilityLabel="TreinaComigo"
+            />
+            <Text style={styles.brandName}>TreinaComigo</Text>
+          </View>
+
           <View style={styles.bottomArea}>
             <View style={styles.glassWrap}>
               <BlurView
-                intensity={40}
-                tint="dark"
+                intensity={50}
+                tint="light"
                 experimentalBlurMethod="dimezisBlurView"
                 style={styles.glassPanel}
               >
@@ -49,7 +60,7 @@ export default function SignInScreen({ navigation }) {
                   activeOpacity={0.85}
                   onPress={() => navigation.navigate("TermsConsent", { next: "EmailAuth" })}
                 >
-                  <Feather name="mail" size={18} color={colors.accent} />
+                  <Feather name="mail" size={18} color={colors.white} />
                   <Text style={styles.phoneBtnText}>Entrar com e-mail</Text>
                 </TouchableOpacity>
 
@@ -58,13 +69,11 @@ export default function SignInScreen({ navigation }) {
                   activeOpacity={0.85}
                   onPress={() => navigation.navigate("TermsConsent", { next: "PhoneAuth" })}
                 >
-                  <Feather name="smartphone" size={18} color={colors.textMuted} />
+                  <Feather name="smartphone" size={18} color={colors.gray} />
                   <Text style={[styles.phoneBtnText, styles.secondaryBtnText]}>
                     Entrar com telefone (mock)
                   </Text>
                 </TouchableOpacity>
-
-                {/* Logins com Google e Apple desabilitados até a configuração do OAuth. */}
 
                 <Text style={styles.terms}>
                   Ao continuar, você verá nossos Termos e Política de Privacidade antes de criar a

@@ -77,7 +77,7 @@ export default function EditProfileScreen({ navigation }) {
       <Switch
         value={!!draft.visibility[field]}
         onValueChange={(v) => patchVisibility(field, v)}
-        trackColor={{ false: "rgba(255,255,255,0.15)", true: "rgba(24,211,166,0.5)" }}
+        trackColor={{ false: colors.surfaceMuted, true: colors.primaryBorder }}
         thumbColor={draft.visibility[field] ? colors.accent : "#888"}
       />
     </View>
@@ -128,7 +128,7 @@ export default function EditProfileScreen({ navigation }) {
           onChangeText={(bio) => patch({ bio })}
           multiline
           maxLength={400}
-          placeholderTextColor="rgba(255,255,255,0.4)"
+          placeholderTextColor={colors.textDim}
           placeholder="Conte sobre rotina, hábitos e o que busca (~120+ chars para nível ideal)"
         />
         <Text style={styles.label}>Cidade</Text>
@@ -152,7 +152,7 @@ export default function EditProfileScreen({ navigation }) {
           style={styles.input}
           value={draft.profession}
           onChangeText={(profession) => patch({ profession })}
-          placeholderTextColor="rgba(255,255,255,0.4)"
+          placeholderTextColor={colors.textDim}
           placeholder="Ex.: Personal, nutricionista..."
         />
         <Text style={styles.label}>Estou buscando</Text>
@@ -160,7 +160,7 @@ export default function EditProfileScreen({ navigation }) {
           style={styles.input}
           value={draft.lookingFor}
           onChangeText={(lookingFor) => patch({ lookingFor })}
-          placeholderTextColor="rgba(255,255,255,0.4)"
+          placeholderTextColor={colors.textDim}
           placeholder="Ex.: Parceiro(a) de treino e conexão"
         />
         <Text style={styles.label}>Lema</Text>
@@ -168,7 +168,7 @@ export default function EditProfileScreen({ navigation }) {
           style={styles.input}
           value={draft.motto}
           onChangeText={(motto) => patch({ motto })}
-          placeholderTextColor="rgba(255,255,255,0.4)"
+          placeholderTextColor={colors.textDim}
           placeholder="Uma frase que te define"
         />
 
@@ -237,7 +237,7 @@ export default function EditProfileScreen({ navigation }) {
               <Switch
                 value={draft.showZodiac}
                 onValueChange={(showZodiac) => patch({ showZodiac })}
-                trackColor={{ false: "rgba(255,255,255,0.15)", true: "rgba(24,211,166,0.5)" }}
+                trackColor={{ false: colors.surfaceMuted, true: colors.primaryBorder }}
                 thumbColor={draft.showZodiac ? colors.accent : "#888"}
               />
             </View>

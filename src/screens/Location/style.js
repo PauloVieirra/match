@@ -9,7 +9,7 @@ export const styles = StyleSheet.create({
     height: 52,
     borderRadius: 14,
     paddingHorizontal: 16,
-    backgroundColor: "rgba(255,255,255,0.06)",
+    backgroundColor: colors.primaryFaint,
     borderWidth: 1,
     borderColor: colors.borderStrong,
     color: colors.text,

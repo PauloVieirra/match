@@ -31,13 +31,13 @@ export const styles = StyleSheet.create({
   scoreBadge: {
     flexDirection: "row",
     alignItems: "flex-end",
-    backgroundColor: "rgba(24,211,166,0.14)",
+    backgroundColor: colors.primarySoft,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 14,
   },
   scoreIdeal: {
-    backgroundColor: "rgba(24,211,166,0.28)",
+    backgroundColor: colors.primaryMuted,
   },
   scoreValue: {
     color: colors.accent,
@@ -54,7 +54,7 @@ export const styles = StyleSheet.create({
   barTrack: {
     height: 6,
     borderRadius: 3,
-    backgroundColor: "rgba(255,255,255,0.08)",
+    backgroundColor: colors.primaryFaint,
     marginTop: 14,
     overflow: "hidden",
   },

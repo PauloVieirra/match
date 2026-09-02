@@ -20,7 +20,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     height: 60,
     borderRadius: 14,
-    backgroundColor: "rgba(255,255,255,0.06)",
+    backgroundColor: colors.primaryFaint,
     borderWidth: 1,
     borderColor: colors.borderStrong,
     alignItems: "center",
@@ -30,8 +30,8 @@ export const styles = StyleSheet.create({
     borderColor: colors.accent,
   },
   boxFilled: {
-    backgroundColor: "rgba(24,211,166,0.10)",
-    borderColor: "rgba(24,211,166,0.4)",
+    backgroundColor: colors.primarySoft,
+    borderColor: colors.primaryBorder,
   },
   boxText: {
     color: colors.text,

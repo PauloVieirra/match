@@ -90,3 +90,38 @@ export async function fetchPublicProfile(userId) {
     raw: response,
   };
 }
+
+/**
+ * Busca perfis por nome.
+ * GET /api/v1/profile/search?q=&limit=
+ */
+export async function searchProfilesByName(query, { limit = 20 } = {}) {
+  const token = await getAccessToken();
+  if (!token) {
+    throw new Error('Sessão expirada. Faça login novamente.');
+  }
+
+  const trimmed = String(query || '').trim();
+  if (trimmed.length < 2) {
+    throw new Error('Digite pelo menos 2 caracteres para buscar.');
+  }
+
+  const params = new URLSearchParams();
+  params.set('q', trimmed);
+  if (limit != null) params.set('limit', String(limit));
+
+  const response = await apiRequest(`/api/v1/profile/search?${params.toString()}`, {
+    method: 'GET',
+    token,
+  });
+
+  const profiles = (response?.data?.profiles || [])
+    .map(mapSwipeProfileToLocal)
+    .filter(Boolean);
+
+  return {
+    profiles,
+    meta: response?.data?.meta || { count: profiles.length, q: trimmed, limit },
+    raw: response,
+  };
+}

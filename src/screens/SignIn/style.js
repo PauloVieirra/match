@@ -4,7 +4,7 @@ import { colors } from "../../theme/colors";
 export const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "transparent",
+    backgroundColor: colors.bg,
   },
   heroImage: {
     flex: 1,
@@ -16,36 +16,52 @@ export const styles = StyleSheet.create({
   },
   safe: {
     flex: 1,
-    justifyContent: "flex-end",
+    justifyContent: "space-between",
+  },
+  topBrand: {
+    alignItems: "center",
+    paddingTop: 16,
+    gap: 6,
+  },
+  logo: {
+    width: 190,
+    height: 190,
+  },
+  brandName: {
+    color: colors.title,
+    fontSize: 26,
+    fontWeight: "800",
+    letterSpacing: -0.3,
+    textShadowColor: "rgba(255,255,255,0.85)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 6,
   },
   bottomArea: {
     paddingHorizontal: 16,
     paddingBottom: 12,
   },
-
   glassWrap: {
     borderRadius: 26,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.14)",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.45,
-    shadowRadius: 24,
-    elevation: 16,
-    backgroundColor: "rgba(20,23,26,0.35)",
+    borderColor: colors.borderStrong,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.12,
+    shadowRadius: 22,
+    elevation: 10,
+    backgroundColor: "rgba(255,254,254,0.72)",
   },
   glassPanel: {
     paddingHorizontal: 20,
     paddingTop: 24,
     paddingBottom: 20,
   },
-
   headline: {
-    color: colors.text,
-    fontSize: 30,
+    color: colors.title,
+    fontSize: 28,
     fontWeight: "800",
-    lineHeight: 35,
+    lineHeight: 34,
     marginBottom: 8,
   },
   subhead: {
@@ -54,7 +70,6 @@ export const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 22,
   },
-
   phoneBtn: {
     height: 54,
     borderRadius: 18,
@@ -62,70 +77,30 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 10,
-    backgroundColor: "rgba(24,211,166,0.16)",
-    borderWidth: 1,
-    borderColor: "rgba(24,211,166,0.38)",
-    // Sombra apenas no iOS: no Android, elevation em fundo translúcido
-    // desenha uma mancha escura dentro do botão.
-    shadowColor: colors.accent,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 14,
+    backgroundColor: colors.primary,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.22,
+    shadowRadius: 10,
+    elevation: 3,
   },
   phoneBtnText: {
-    color: colors.text,
+    color: colors.white,
     fontSize: 16,
     fontWeight: "700",
   },
   secondaryBtn: {
     marginTop: 10,
-    backgroundColor: "rgba(255,255,255,0.06)",
-    borderColor: "rgba(255,255,255,0.14)",
+    backgroundColor: colors.primaryFaint,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
     shadowOpacity: 0,
+    elevation: 0,
   },
   secondaryBtnText: {
-    color: colors.textMuted,
+    color: colors.gray,
     fontWeight: "600",
   },
-
-  dividerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginVertical: 18,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "rgba(255,255,255,0.12)",
-  },
-  dividerText: {
-    color: colors.textDim,
-    fontSize: 12,
-    fontWeight: "600",
-  },
-
-  socialRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 18,
-  },
-  dropBtn: {
-    width: 62,
-    height: 62,
-    borderRadius: 31,
-    borderBottomRightRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.08)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.18)",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-  },
-
   terms: {
     color: colors.textDim,
     fontSize: 12,

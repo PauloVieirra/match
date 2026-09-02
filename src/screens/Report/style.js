@@ -11,7 +11,7 @@ export const styles = StyleSheet.create({
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingTop: 14,
-    backgroundColor: "rgba(255,255,255,0.06)",
+    backgroundColor: colors.primaryFaint,
     borderWidth: 1,
     borderColor: colors.borderStrong,
     color: colors.text,

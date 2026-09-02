@@ -1,11 +1,11 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, FlatList, Alert, Platform } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, FlatList, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import MapView, { Marker, UrlTile } from "react-native-maps";
 import * as Location from "expo-location";
 import { Feather } from "@expo/vector-icons";
 import { AppContext } from "../../../contexts/ContextAPI";
 import { mockVenues, VENUE_TYPES, distanceMeters } from "../../data/mockVenues";
+import IbgeMap from "../../Components/map/IbgeMap";
 import { colors } from "../../theme/colors";
 import { styles } from "./style";
 
@@ -206,39 +206,13 @@ export default function CheckInScreen() {
 
   return (
     <View style={styles.screen}>
-      <MapView
+      <IbgeMap
         ref={mapRef}
         style={styles.map}
         initialRegion={FALLBACK_REGION}
+        markers={venues}
         onMapReady={() => setMapReady(true)}
-        showsUserLocation={false}
-        showsMyLocationButton={false}
-        toolbarEnabled={false}
-        showsPointsOfInterest={false}
-        showsBuildings={false}
-        showsIndoors={false}
-        // Desliga o mapa base do Google no Android — sem isso, os POIs
-        // (lojas, comércios) renderizam por cima dos tiles CARTO.
-        mapType={Platform.OS === "android" ? "none" : "standard"}
-      >
-        {/* Tiles CARTO sem rótulos (dados OpenStreetMap) — o mapa fica limpo e
-            só aparecem os locais/eventos cadastrados no app, via Markers. */}
-        <UrlTile
-          urlTemplate="https://a.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png"
-          maximumZ={19}
-          flipY={false}
-          shouldReplaceMapContent
-        />
-        {venues.map((venue) => (
-          <Marker
-            key={venue.id}
-            coordinate={{ latitude: venue.latitude, longitude: venue.longitude }}
-            title={venue.name}
-            description={venue.isTest ? "Local de teste para check-in" : VENUE_TYPES[venue.type]?.label}
-            pinColor={venue.isTest ? "#F5B841" : colors.accent}
-          />
-        ))}
-      </MapView>
+      />
 
       <View style={[styles.overlay, { top: insets.top + 10 }]}>
         <View style={styles.searchRow}>
@@ -246,7 +220,7 @@ export default function CheckInScreen() {
           <TextInput
             style={styles.searchInput}
             placeholder="Buscar academia, parque, evento..."
-            placeholderTextColor="rgba(255,255,255,0.45)"
+            placeholderTextColor={colors.textDim}
             value={query}
             onChangeText={setQuery}
             autoCorrect={false}
@@ -301,7 +275,7 @@ export default function CheckInScreen() {
       </View>
 
       <Text style={[styles.attribution, { bottom: insets.bottom + 2 }]}>
-        © OpenStreetMap · © CARTO
+        © IBGE · BC250 · OpenStreetMap
       </Text>
     </View>
   );

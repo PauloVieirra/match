@@ -67,7 +67,7 @@ export default function CityAutocomplete({ value, onSelect, placeholder = "Digit
           value={text}
           onChangeText={onChange}
           placeholder={placeholder}
-          placeholderTextColor="rgba(255,255,255,0.4)"
+          placeholderTextColor={colors.textDim}
           autoCorrect={false}
         />
         {loading ? <ActivityIndicator size="small" color={colors.accent} /> : null}
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     height: 52,
     borderRadius: 14,
     paddingHorizontal: 14,
-    backgroundColor: "rgba(255,255,255,0.06)",
+    backgroundColor: colors.primaryFaint,
     borderWidth: 1,
     borderColor: colors.borderStrong,
   },

@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { StyleSheet } from "react-native";
-import { DarkTheme, NavigationContainer } from "@react-navigation/native";
+import { DefaultTheme, NavigationContainer } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Toaster } from "sonner-native";
@@ -13,8 +13,15 @@ import { colors } from "./src/theme/colors";
 
 // Fundo transparente nas telas para o gradiente global (AppBackground) aparecer.
 const navTheme = {
-  ...DarkTheme,
-  colors: { ...DarkTheme.colors, background: "transparent" },
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: "transparent",
+    primary: colors.primary,
+    card: colors.bgElevated,
+    text: colors.text,
+    border: colors.border,
+  },
 };
 
 function AppContent() {
@@ -41,7 +48,7 @@ function AppContent() {
         />
       </NavigationContainer>
       <Toaster
-        theme="dark"
+        theme="light"
         position="top-center"
         richColors
         closeButton
@@ -52,7 +59,7 @@ function AppContent() {
             borderColor: colors.borderStrong,
           },
           titleStyle: {
-            color: colors.text,
+            color: colors.title,
             fontWeight: "700",
           },
           descriptionStyle: {

@@ -1,13 +1,14 @@
 import { StyleSheet } from "react-native";
+import { colors } from "../../theme/colors";
 
 export const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0B0D0F" },
+  container: { flex: 1, backgroundColor: colors.bg },
 
   card: {
     position: "absolute",
     width: "100%",
     height: "100%",
-    backgroundColor: "#0B0D0F",
+    backgroundColor: colors.bg,
   },
 
   cardImage: { transform: [{ scale: 1.02 }] },
@@ -35,7 +36,7 @@ export const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: "#18D3A6",
+    backgroundColor: colors.primary,
     borderWidth: 2,
     borderColor: "rgba(255,255,255,0.9)",
   },
@@ -61,10 +62,10 @@ export const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 2,
   },
-  stampLike: { left: 18, borderColor: "rgba(24,211,166,0.9)" },
+  stampLike: { left: 18, borderColor: colors.primary },
   stampNope: { right: 18, borderColor: "rgba(255, 77, 109, 0.95)" },
   stampText: { fontSize: 18, fontWeight: "900" },
-  stampLikeText: { color: "#18D3A6" },
+  stampLikeText: { color: colors.primary },
   stampNopeText: { color: "#FF4D6D" },
 
   actionsRow: {
@@ -87,9 +88,9 @@ export const styles = StyleSheet.create({
     borderWidth: 2,
   },
   actionNope: { borderColor: "rgba(255, 77, 109, 0.9)" },
-  actionLike: { borderColor: "rgba(24,211,166,0.9)" },
+  actionLike: { borderColor: colors.primary },
   actionIcon: { fontSize: 34, fontWeight: "900" },
   actionNopeIcon: { color: "#FF4D6D" },
-  actionLikeIcon: { color: "#18D3A6" },
+  actionLikeIcon: { color: colors.primary },
 });
 

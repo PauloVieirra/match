@@ -84,7 +84,7 @@ export default function PhoneAuthScreen({ navigation }) {
             <TextInput
               style={styles.input}
               placeholder="(61) 99999-9999"
-              placeholderTextColor="rgba(255,255,255,0.4)"
+              placeholderTextColor={colors.textDim}
               keyboardType="phone-pad"
               value={phone}
               onChangeText={(t) => setPhone(formatPhone(t))}

@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   ghostText: {
-    color: colors.text,
+    color: colors.primary,
   },
   coralText: {
     color: colors.white,

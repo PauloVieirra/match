@@ -42,7 +42,7 @@ export default function MatchCelebrationScreen({ navigation, route }) {
 
   return (
     <LinearGradient
-      colors={["#12231F", colors.bg, "#09100E"]}
+      colors={[colors.soft, colors.bg, colors.white]}
       locations={[0, 0.55, 1]}
       style={styles.screen}
     >
@@ -56,7 +56,7 @@ export default function MatchCelebrationScreen({ navigation, route }) {
 
         <View style={styles.sparkles}>
           <Feather name="zap" size={22} color={colors.accent} />
-          <Feather name="activity" size={18} color="rgba(24,211,166,0.55)" />
+          <Feather name="activity" size={18} color={colors.primary} />
           <Feather name="star" size={16} color={colors.textMuted} />
         </View>
 

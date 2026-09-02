@@ -23,12 +23,12 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     borderWidth: 1,
     borderColor: colors.borderStrong,
-    backgroundColor: "rgba(255,255,255,0.04)",
+    backgroundColor: colors.surfaceMuted,
     marginRight: 8,
     marginBottom: 8,
   },
   chipSelected: {
-    backgroundColor: "rgba(24,211,166,0.18)",
+    backgroundColor: colors.primaryMuted,
     borderColor: colors.accent,
   },
   text: {

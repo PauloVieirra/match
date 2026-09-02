@@ -148,13 +148,13 @@ export default function ProfileDetailScreen({ navigation, route }) {
         >
           <LinearGradient
             colors={[
-              "rgba(11,13,15,0.35)",
-              "rgba(11,13,15,0.00)",
-              "rgba(11,13,15,0.35)",
-              "rgba(11,13,15,0.88)",
+              "transparent",
+              "transparent",
+              "rgba(255,248,249,0.55)",
+              "rgba(255,248,249,0.92)",
               colors.bg,
             ]}
-            locations={[0, 0.25, 0.55, 0.82, 1]}
+            locations={[0, 0.4, 0.7, 0.9, 1]}
             style={styles.heroGradient}
           />
 

@@ -217,7 +217,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: "rgba(24,211,166,0.14)",
+    backgroundColor: colors.primarySoft,
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -241,7 +241,7 @@ export const styles = StyleSheet.create({
   progressTrack: {
     height: 8,
     borderRadius: 4,
-    backgroundColor: "rgba(255,255,255,0.08)",
+    backgroundColor: colors.primaryFaint,
     marginTop: 10,
     overflow: "hidden",
   },
@@ -285,7 +285,7 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
   },
   badgeLocked: {
-    backgroundColor: "rgba(255,255,255,0.04)",
+    backgroundColor: colors.surfaceMuted,
     borderColor: colors.border,
   },
   badgeLabel: {

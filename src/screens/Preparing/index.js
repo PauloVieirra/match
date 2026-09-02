@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, Animated, Easing, StyleSheet } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { View, Text, Image, Animated, Easing, StyleSheet } from "react-native";
 import { colors } from "../../theme/colors";
 
 const PHRASES = [
@@ -20,7 +19,7 @@ export default function PreparingScreen() {
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulse, {
-          toValue: 1.15,
+          toValue: 1.08,
           duration: 700,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
@@ -58,7 +57,12 @@ export default function PreparingScreen() {
   return (
     <View style={styles.screen}>
       <Animated.View style={[styles.iconWrap, { transform: [{ scale: pulse }] }]}>
-        <Feather name="zap" size={34} color={colors.accentDark} />
+        <Image
+          source={require("../../../assets/icon.png")}
+          style={styles.logo}
+          resizeMode="contain"
+          accessibilityLabel="TreinaComigo"
+        />
       </Animated.View>
 
       <Animated.Text style={[styles.phrase, { opacity: fade }]}>
@@ -92,16 +96,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   iconWrap: {
-    width: 86,
-    height: 86,
-    borderRadius: 43,
-    backgroundColor: colors.accent,
+    width: 110,
+    height: 110,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 34,
   },
+  logo: {
+    width: 110,
+    height: 110,
+  },
   phrase: {
-    color: colors.text,
+    color: colors.title,
     fontSize: 22,
     fontWeight: "800",
     textAlign: "center",
@@ -117,13 +123,13 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 6,
     borderRadius: 3,
-    backgroundColor: "rgba(255,255,255,0.08)",
+    backgroundColor: colors.primaryFaint,
     overflow: "hidden",
     marginTop: 36,
   },
   fill: {
     height: "100%",
     borderRadius: 3,
-    backgroundColor: colors.accent,
+    backgroundColor: colors.primary,
   },
 });

@@ -71,7 +71,7 @@ export const styles = StyleSheet.create({
     color: colors.textDim,
   },
   bioPreview: {
-    color: "rgba(255,255,255,0.85)",
+    color: colors.textMuted,
     fontSize: 14,
     lineHeight: 21,
     marginTop: 12,
@@ -121,7 +121,7 @@ export const styles = StyleSheet.create({
     gap: 8,
   },
   tag: {
-    backgroundColor: "rgba(255,255,255,0.05)",
+    backgroundColor: colors.primaryFaint,
     borderRadius: 999,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -134,7 +134,7 @@ export const styles = StyleSheet.create({
     fontWeight: "600",
   },
   lookingTag: {
-    backgroundColor: "rgba(24,211,166,0.18)",
+    backgroundColor: colors.primaryMuted,
     borderRadius: 999,
     paddingHorizontal: 14,
     paddingVertical: 9,

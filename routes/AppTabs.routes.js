@@ -2,6 +2,7 @@ import React from "react";
 import { Feather } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { colors } from "../src/theme/colors";
 
 import HomeScreen from "../src/screens/Home/Index";
 import DiscoverScreen from "../src/screens/Discover";
@@ -35,13 +36,11 @@ export default function AppTabs() {
       screenOptions={({ route }) => ({
         headerShown: false,
         sceneStyle: { backgroundColor: "transparent" },
-        tabBarActiveTintColor: "#18D3A6",
-        tabBarInactiveTintColor: "rgba(255,255,255,0.45)",
-        // Com edgeToEdgeEnabled no Android, height fixo sem inset deixa a
-        // barra do sistema por cima dos botões — incluir paddingBottom + height.
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textDim,
         tabBarStyle: {
-          backgroundColor: "#0B0D0F",
-          borderTopColor: "rgba(255,255,255,0.08)",
+          backgroundColor: colors.bgElevated,
+          borderTopColor: colors.border,
           paddingTop: 6,
           height: TAB_BAR_CONTENT_HEIGHT + bottomInset,
           paddingBottom: bottomInset,

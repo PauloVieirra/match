@@ -10,7 +10,7 @@ export default function TermsScreen({ navigation }) {
       <ScreenHeader title="Termos de uso" onBack={() => navigation.goBack()} large />
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.p}>
-          Ao usar o Match Maromba, você concorda em criar um perfil verdadeiro, respeitar outros
+          Ao usar o TreinaComigo, você concorda em criar um perfil verdadeiro, respeitar outros
           usuários e usar o app para conexões baseadas em estilo de vida e qualidade de vida.
         </Text>
         <Text style={styles.p}>

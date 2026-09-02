@@ -314,7 +314,7 @@ export default function OnboardingScreen() {
               <TextInput
                 style={styles.input}
                 placeholder="Como você se chama?"
-                placeholderTextColor="rgba(255,255,255,0.4)"
+                placeholderTextColor={colors.textDim}
                 value={draft.name}
                 onChangeText={(name) => patch({ name })}
                 autoCapitalize="words"
@@ -323,7 +323,7 @@ export default function OnboardingScreen() {
               <TextInput
                 style={[styles.input, styles.bio]}
                 placeholder="Ex.: Busco constância e bons hábitos..."
-                placeholderTextColor="rgba(255,255,255,0.4)"
+                placeholderTextColor={colors.textDim}
                 value={draft.bio}
                 onChangeText={(bio) => patch({ bio })}
                 multiline
@@ -338,7 +338,7 @@ export default function OnboardingScreen() {
               <TextInput
                 style={[styles.input, styles.birthInput]}
                 placeholder="DD/MM/AAAA"
-                placeholderTextColor="rgba(255,255,255,0.4)"
+                placeholderTextColor={colors.textDim}
                 value={draft.birthDate}
                 onChangeText={(text) => {
                   setAgeConfirmed(false);
@@ -358,7 +358,7 @@ export default function OnboardingScreen() {
                   <Switch
                     value={!!draft.showZodiac}
                     onValueChange={(showZodiac) => patch({ showZodiac })}
-                    trackColor={{ false: "rgba(255,255,255,0.15)", true: "rgba(24,211,166,0.5)" }}
+                    trackColor={{ false: colors.surfaceMuted, true: colors.primaryBorder }}
                     thumbColor={draft.showZodiac ? colors.accent : "#888"}
                   />
                 </View>

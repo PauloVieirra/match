@@ -16,6 +16,7 @@ import PrimaryButton from "../../Components/ui/PrimaryButton";
 import { AppContext } from "../../../contexts/ContextAPI";
 import { formatApiError } from "../../utils/api/formatApiError";
 import { loginSchema, registerSchema } from "../../utils/validation/authSchemas";
+import { colors } from "../../theme/colors";
 import { styles } from "./style";
 
 export default function EmailAuthScreen({ navigation, route }) {
@@ -72,7 +73,7 @@ export default function EmailAuthScreen({ navigation, route }) {
     <SafeAreaView style={styles.container} edges={["top", "left", "right", "bottom"]}>
       <ScreenHeader
         title={isRegister ? "Criar conta" : "Entrar"}
-        subtitle="Use e-mail e senha para conectar com a API Match Maromba."
+        subtitle="Use e-mail e senha para entrar no TreinaComigo."
         onBack={() => navigation.goBack()}
         large
       />
@@ -108,7 +109,7 @@ export default function EmailAuthScreen({ navigation, route }) {
                 onChangeText={formik.handleChange("name")}
                 onBlur={formik.handleBlur("name")}
                 placeholder="Como quer ser chamado"
-                placeholderTextColor="rgba(255,255,255,0.35)"
+                placeholderTextColor={colors.textDim}
                 autoCapitalize="words"
               />
               {formik.touched.name && formik.errors.name ? (
@@ -124,7 +125,7 @@ export default function EmailAuthScreen({ navigation, route }) {
             onChangeText={formik.handleChange("email")}
             onBlur={formik.handleBlur("email")}
             placeholder="voce@email.com"
-            placeholderTextColor="rgba(255,255,255,0.35)"
+            placeholderTextColor={colors.textDim}
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
@@ -140,7 +141,7 @@ export default function EmailAuthScreen({ navigation, route }) {
             onChangeText={formik.handleChange("password")}
             onBlur={formik.handleBlur("password")}
             placeholder={isRegister ? "Mín. 8 caracteres" : "Sua senha"}
-            placeholderTextColor="rgba(255,255,255,0.35)"
+            placeholderTextColor={colors.textDim}
             secureTextEntry
           />
           {formik.touched.password && formik.errors.password ? (

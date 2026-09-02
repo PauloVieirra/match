@@ -1,20 +1,29 @@
-import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
   ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Feather } from "@expo/vector-icons";
 import { styles } from "./style";
 import ProfileGrid from "../../Components/ProfileGrid";
 import { AppContext } from "../../../contexts/ContextAPI";
 import { filterCompatibleProfiles } from "../../utils/profileMatcher";
 import { mergeFiltersWithProfile } from "../../data/lifestyleOptions";
 import { fetchNearbyProfiles, updateMyLocationOnApi } from "../../services/api/location";
-import { resolveDiscoverCoordinates, SEED_MAP_ORIGIN } from "../../services/location/resolveCoordinates";
+import { searchProfilesByName } from "../../services/api/profile";
+import { formatApiError } from "../../utils/api/formatApiError";
+import {
+  coordsFromProfile,
+  isEmulatorMockLocation,
+  resolveDiscoverCoordinates,
+  SEED_MAP_ORIGIN,
+} from "../../services/location/resolveCoordinates";
 import { ApiError } from "../../services/api/client";
 import { colors } from "../../theme/colors";
 
@@ -33,6 +42,14 @@ export default function DiscoverScreen({ navigation }) {
   const [needsLocation, setNeedsLocation] = useState(false);
   const [locationSource, setLocationSource] = useState(null);
   const [apiCount, setApiCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState(null);
+  const searchDebounceRef = useRef(null);
+
+  const trimmedSearch = searchQuery.trim();
+  const isSearchActive = trimmedSearch.length >= 2;
 
   const loadNearby = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -41,7 +58,10 @@ export default function DiscoverScreen({ navigation }) {
     setNeedsLocation(false);
 
     try {
-      const resolved = await resolveDiscoverCoordinates({ allowSeedFallback: __DEV__ });
+      const resolved = await resolveDiscoverCoordinates({
+        allowSeedFallback: __DEV__,
+        storedProfileCoords: coordsFromProfile(user?.profile),
+      });
       setLocationSource(resolved.source);
 
       if (!resolved.coords) {
@@ -56,15 +76,21 @@ export default function DiscoverScreen({ navigation }) {
 
       const { latitude, longitude } = resolved.coords;
 
-      // Persiste no backend; se falhar, ainda buscamos com lat/lng na query.
-      try {
-        await updateMyLocationOnApi({
-          longitude,
-          latitude,
-          locationGranted: resolved.permission === "granted",
-        });
-      } catch (putError) {
-        console.log("PUT /location/me falhou (seguindo com query):", putError?.message);
+      // Só persiste GPS real — evita sobrescrever o perfil com coords fake do emulador.
+      const shouldPersistLocation =
+        (resolved.source === "gps" || resolved.source === "last_known")
+        && !isEmulatorMockLocation(latitude, longitude);
+
+      if (shouldPersistLocation) {
+        try {
+          await updateMyLocationOnApi({
+            longitude,
+            latitude,
+            locationGranted: resolved.permission === "granted",
+          });
+        } catch (putError) {
+          console.log("PUT /location/me falhou (seguindo com query):", putError?.message);
+        }
       }
 
       const result = await fetchNearbyProfiles({
@@ -107,11 +133,59 @@ export default function DiscoverScreen({ navigation }) {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [resolvedFilters.maxDistanceKm]);
+  }, [resolvedFilters.maxDistanceKm, user?.profile]);
 
   useEffect(() => {
     loadNearby(false);
   }, [loadNearby]);
+
+  useEffect(() => {
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+      searchDebounceRef.current = null;
+    }
+
+    if (trimmedSearch.length < 2) {
+      setSearchResults([]);
+      setSearchLoading(false);
+      setSearchError(null);
+      return undefined;
+    }
+
+    setSearchLoading(true);
+    setSearchError(null);
+
+    searchDebounceRef.current = setTimeout(async () => {
+      try {
+        const result = await searchProfilesByName(trimmedSearch, { limit: 20 });
+        setSearchResults(result.profiles);
+        if (result.profiles.length === 0) {
+          setSearchError(`Nenhum perfil encontrado para "${trimmedSearch}".`);
+        } else {
+          setSearchError(null);
+        }
+      } catch (error) {
+        setSearchResults([]);
+        setSearchError(formatApiError(error, "Não foi possível buscar por nome."));
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 400);
+
+    return () => {
+      if (searchDebounceRef.current) {
+        clearTimeout(searchDebounceRef.current);
+        searchDebounceRef.current = null;
+      }
+    };
+  }, [trimmedSearch]);
+
+  const clearSearch = () => {
+    setSearchQuery("");
+    setSearchResults([]);
+    setSearchError(null);
+    setSearchLoading(false);
+  };
 
   const profiles = useMemo(
     () =>
@@ -122,9 +196,13 @@ export default function DiscoverScreen({ navigation }) {
     [remoteProfiles, myLifestyles, resolvedFilters]
   );
 
+  const displayProfiles = isSearchActive ? searchResults : profiles;
+  const displayCount = displayProfiles.length;
+
   useEffect(() => {
+    if (isSearchActive) return;
     registerReciprocalCandidates(profiles.map((profile) => profile.id));
-  }, [profiles, registerReciprocalCandidates]);
+  }, [profiles, registerReciprocalCandidates, isSearchActive]);
 
   const opennessLabel =
     resolvedFilters.openness === "open"
@@ -134,7 +212,11 @@ export default function DiscoverScreen({ navigation }) {
         : "seletiva";
 
   const showEmptyAfterFilter =
-    !loading && !errorMessage && apiCount > 0 && profiles.length === 0;
+    !isSearchActive && !loading && !errorMessage && apiCount > 0 && profiles.length === 0;
+
+  const showNearbyContent = !isSearchActive;
+  const showSearchEmpty =
+    isSearchActive && !searchLoading && trimmedSearch.length >= 2 && displayCount === 0;
 
   return (
     <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
@@ -142,8 +224,11 @@ export default function DiscoverScreen({ navigation }) {
         <View style={{ flex: 1 }}>
           <Text style={styles.brand}>Conectar pessoas</Text>
           <Text style={styles.hint}>
-            Tolerância {opennessLabel} · até {resolvedFilters.maxDistanceKm} km
-            {locationSource === "seed_fallback" ? " · origem teste SP" : ""}
+            {isSearchActive
+              ? `Busca por "${trimmedSearch}"`
+              : `Tolerância ${opennessLabel} · até ${resolvedFilters.maxDistanceKm} km${
+                  locationSource === "seed_fallback" ? ` · ${SEED_MAP_ORIGIN.label}` : ""
+                }${locationSource === "profile" ? " · localização do perfil" : ""}`}
           </Text>
         </View>
         <TouchableOpacity
@@ -158,12 +243,65 @@ export default function DiscoverScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {loading ? (
+      <View style={styles.searchBar}>
+        <Feather name="search" size={16} color={colors.gray} style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchInput}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder="Buscar por nome"
+          placeholderTextColor={colors.gray}
+          selectionColor={colors.primary}
+          autoCapitalize="words"
+          autoCorrect={false}
+          returnKeyType="search"
+          maxLength={60}
+        />
+        {searchLoading ? (
+          <ActivityIndicator size="small" color={colors.accent} style={styles.searchAction} />
+        ) : searchQuery.length > 0 ? (
+          <TouchableOpacity onPress={clearSearch} style={styles.searchAction} hitSlop={8}>
+            <Feather name="x" size={16} color={colors.textMuted} />
+          </TouchableOpacity>
+        ) : null}
+      </View>
+
+      {isSearchActive ? (
+        searchLoading && displayCount === 0 ? (
+          <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+            <ActivityIndicator color={colors.accent} />
+            <Text style={[styles.hint, { marginTop: 12 }]}>Buscando por nome…</Text>
+          </View>
+        ) : showSearchEmpty ? (
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1, justifyContent: "center", padding: 24 }}
+            keyboardShouldPersistTaps="handled"
+          >
+            <Text style={[styles.brand, { textAlign: "center", marginBottom: 8 }]}>
+              Nenhum resultado
+            </Text>
+            <Text style={[styles.hint, { textAlign: "center" }]}>
+              {searchError || `Nenhum perfil encontrado para "${trimmedSearch}".`}
+            </Text>
+          </ScrollView>
+        ) : (
+          <View style={styles.gridWrap}>
+            <ProfileGrid
+              data={displayProfiles}
+              emptyTitle="Nenhum perfil encontrado"
+              emptyText={searchError || "Tente outro nome com pelo menos 2 caracteres."}
+              onPressProfile={(profile) =>
+                navigation.navigate("ProfileDetail", { userId: profile.id, user: profile })
+              }
+            />
+          </View>
+        )
+      ) : loading ? (
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
           <ActivityIndicator color={colors.accent} />
           <Text style={[styles.hint, { marginTop: 12 }]}>Buscando por proximidade…</Text>
         </View>
-      ) : errorMessage || showEmptyAfterFilter ? (
+      ) : showNearbyContent && (errorMessage || showEmptyAfterFilter) ? (
         <ScrollView
           contentContainerStyle={{ flexGrow: 1, justifyContent: "center", padding: 24 }}
           refreshControl={
@@ -189,7 +327,7 @@ export default function DiscoverScreen({ navigation }) {
             <Text style={styles.filterText}>Tentar de novo</Text>
           </TouchableOpacity>
         </ScrollView>
-      ) : (
+      ) : showNearbyContent ? (
         <View style={styles.gridWrap}>
           <ProfileGrid
             data={profiles}
@@ -203,12 +341,13 @@ export default function DiscoverScreen({ navigation }) {
             }
           />
         </View>
-      )}
+      ) : null}
 
       <View style={styles.bottomBar}>
         <View style={styles.foundPill}>
           <Text style={styles.foundText}>
-            {profiles.length} encontrado{profiles.length === 1 ? "" : "s"}
+            {displayCount} {isSearchActive ? "resultado" : "encontrado"}
+            {displayCount === 1 ? "" : "s"}
           </Text>
         </View>
       </View>

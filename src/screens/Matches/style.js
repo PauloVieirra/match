@@ -79,7 +79,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 999,
-    backgroundColor: "rgba(24,211,166,0.12)",
+    backgroundColor: colors.primarySoft,
   },
   tagText: {
     color: colors.accent,

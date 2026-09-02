@@ -21,7 +21,7 @@ export const styles = StyleSheet.create({
   thumb: {
     width: 88,
     height: 88,
-    backgroundColor: "rgba(255,255,255,0.06)",
+    backgroundColor: colors.primaryFaint,
   },
   slotInfo: {
     flex: 1,

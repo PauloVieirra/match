@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, Alert, ScrollView } from "react-native";
+import { colors } from "../../theme/colors";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Chip from "../../Components/ui/Chip";
 import PrimaryButton from "../../Components/ui/PrimaryButton";
@@ -49,7 +50,7 @@ export default function ReportScreen({ navigation }) {
           onChangeText={setDetails}
           multiline
           placeholder="Descreva o ocorrido..."
-          placeholderTextColor="rgba(255,255,255,0.4)"
+          placeholderTextColor={colors.textDim}
         />
       </ScrollView>
       <View style={styles.footer}>

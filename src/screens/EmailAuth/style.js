@@ -16,7 +16,7 @@ export const styles = StyleSheet.create({
     marginBottom: 20,
     padding: 4,
     borderRadius: 14,
-    backgroundColor: "rgba(255,255,255,0.05)",
+    backgroundColor: colors.primaryFaint,
     borderWidth: 1,
     borderColor: colors.border,
   },
@@ -28,7 +28,7 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
   },
   modeBtnOn: {
-    backgroundColor: "rgba(24,211,166,0.18)",
+    backgroundColor: colors.primaryMuted,
   },
   modeText: {
     color: colors.textMuted,
@@ -49,7 +49,7 @@ export const styles = StyleSheet.create({
     height: 54,
     borderRadius: 14,
     paddingHorizontal: 16,
-    backgroundColor: "rgba(255,255,255,0.06)",
+    backgroundColor: colors.primaryFaint,
     borderWidth: 1,
     borderColor: colors.borderStrong,
     color: colors.text,

@@ -2,7 +2,7 @@
 // A pontuação (XP) e as conquistas serão calculadas pelo backend futuramente.
 
 export const ACHIEVEMENT_BADGES = [
-  { id: "streak", label: "Constância", icon: "zap", color: "#18D3A6" },
+  { id: "streak", label: "Constância", icon: "zap", color: "#FC2B5E" },
   { id: "early", label: "Madrugador", icon: "sunrise", color: "#F5B841" },
   { id: "distance", label: "Longa distância", icon: "map", color: "#5AA9FF" },
   { id: "social", label: "Parceiro de treino", icon: "users", color: "#B08CFF" },

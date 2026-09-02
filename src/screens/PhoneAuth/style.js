@@ -27,7 +27,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: "rgba(255,255,255,0.06)",
+    backgroundColor: colors.primaryFaint,
     borderWidth: 1,
     borderColor: colors.borderStrong,
   },
@@ -44,7 +44,7 @@ export const styles = StyleSheet.create({
     height: 54,
     borderRadius: 14,
     paddingHorizontal: 16,
-    backgroundColor: "rgba(255,255,255,0.06)",
+    backgroundColor: colors.primaryFaint,
     borderWidth: 1,
     borderColor: colors.borderStrong,
     color: colors.text,
@@ -68,7 +68,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   codeItemActive: {
-    backgroundColor: "rgba(24,211,166,0.10)",
+    backgroundColor: colors.primarySoft,
   },
   codeItemLabel: {
     flex: 1,

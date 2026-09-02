@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.06)",
+    backgroundColor: colors.surfaceMuted,
   },
   backText: {
     color: colors.text,
@@ -54,12 +54,12 @@ const styles = StyleSheet.create({
   },
   spacer: { width: 40, height: 40 },
   titleCenter: {
-    color: colors.text,
+    color: colors.title,
     fontSize: 17,
     fontWeight: "700",
   },
   titleLarge: {
-    color: colors.text,
+    color: colors.title,
     fontSize: 28,
     fontWeight: "800",
     marginTop: 4,
